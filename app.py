@@ -7,8 +7,8 @@ import io
 import numpy as np
 
 st.set_page_config(
-    page_title="OculAI",
-    page_icon="👁️",
+    page_title="OncoAI",
+    page_icon="🩺",
     layout="wide",
     initial_sidebar_state="auto",
 )
@@ -21,7 +21,7 @@ def load_model():
         response.raise_for_status()
 
         model = models.resnet50(pretrained=True)
-        model.fc = torch.nn.Linear(model.fc.in_features, 5)
+        model.fc = torch.nn.Linear(model.fc.in_features, 2)  # Updated to 2 classes (Benign, Malignant)
 
         state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
         new_state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
@@ -56,19 +56,19 @@ def predict(image):
         probabilities = torch.nn.functional.softmax(outputs, dim=1).squeeze().tolist()
         return probabilities
 
-st.title("OculAI")
-st.subheader("One Model, Countless Diseases")
+st.title("OncoAI")
+st.subheader("Detect Benign or Malignant Skin Lesions")
 
 input_method = st.radio("Choose Input Method", ("Upload Image", "Capture from Camera"))
 
 img = None
 
 if input_method == "Upload Image":
-    uploaded_file = st.file_uploader("Upload Eye Image", type=["jpg", "png", "jpeg"])
+    uploaded_file = st.file_uploader("Upload Skin Lesion Image", type=["jpg", "png", "jpeg"])
     if uploaded_file:
         img = Image.open(uploaded_file).convert("RGB")
 elif input_method == "Capture from Camera":
-    camera_image = st.camera_input("Capture Eye Image")
+    camera_image = st.camera_input("Capture Skin Lesion Image")
     if camera_image:
         img = Image.open(camera_image).convert("RGB")
 
@@ -81,10 +81,10 @@ if img:
         try:
             probabilities = predict(input_tensor)
 
-            stages = ["No DR (0)", "Mild (1)", "Moderate (2)", "Severe (3)", "Proliferative DR (4)"]
+            stages = ["Benign (0)", "Malignant (1)"]
             prediction = stages[np.argmax(probabilities)]
 
-            st.markdown(f"<h3>Predicted Stage: {prediction}</h3>", unsafe_allow_html=True)
+            st.markdown(f"<h3>Predicted Class: {prediction}</h3>", unsafe_allow_html=True)
             
             st.markdown("<h3>Probabilities:</h3>", unsafe_allow_html=True)
             
@@ -95,4 +95,4 @@ if img:
         except Exception as e:
             st.error(f"Error during prediction: {e}")
 else:
-    st.info("Please upload or capture an eye image to proceed.")
+    st.info("Please upload or capture a skin lesion image to proceed.")
