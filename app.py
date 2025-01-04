@@ -56,7 +56,7 @@ def predict(image):
         return probabilities
 
 st.title("OncoAI")
-st.subheader("Detect Benign or Malignant Skin Lesions")
+st.subheader("Detect Normal, Benign, or Malignant Skin Lesions")
 
 input_method = st.radio("Choose Input Method", ("Upload Image", "Capture from Camera"))
 
