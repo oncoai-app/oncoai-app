@@ -23,7 +23,7 @@ def load_model():
         # Use EfficientNet as the base model
         model = models.efficientnet_b0(pretrained=True)
         num_features = model.classifier[1].in_features
-        model.classifier[1] = torch.nn.Linear(num_features, 3)  # 3 classes: Normal, Benign, Malignant
+        model.classifier[1] = torch.nn.Linear(num_features, 2)  # 2 classes: Benign, Malignant
 
         # Load state dictionary
         state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
@@ -56,7 +56,7 @@ def predict(image):
         return probabilities
 
 st.title("OncoAI")
-st.subheader("Detect Normal, Benign, or Malignant Skin Lesions")
+st.subheader("Detect Benign or Malignant Skin Lesions")
 
 input_method = st.radio("Choose Input Method", ("Upload Image", "Capture from Camera"))
 
@@ -80,7 +80,7 @@ if img:
         try:
             probabilities = predict(input_tensor)
 
-            stages = ["Normal", "Benign", "Malignant"]
+            stages = ["Benign", "Malignant"]
             prediction = stages[np.argmax(probabilities)]
 
             st.markdown(f"<h3>Predicted Class: {prediction}</h3>", unsafe_allow_html=True)
