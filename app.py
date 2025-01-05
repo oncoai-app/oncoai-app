@@ -95,7 +95,7 @@ if img:
                 
                 # Custom progress bar with color styling
                 progress_html = f"""
-                <div style="background-color: #e0e0e0; border-radius: 25px; width: 100%; height: 12px; margin-bottom: 10px;">
+                <div style="background-color: #e0e0e0; border-radius: 25px; width: 100%; height: 18px; margin-bottom: 10px;">
                     <div style="background-color: {colors[stage]}; width: {prob * 100}%; height: 100%; border-radius: 25px;"></div>
                 </div>
                 """
