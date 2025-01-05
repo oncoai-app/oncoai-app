@@ -20,17 +20,15 @@ def load_model():
         response = requests.get(url)
         response.raise_for_status()
 
-        # Use EfficientNet as the base model
-        model = models.efficientnet_b0(pretrained=True)
+        model = models.efficientnet_b0(pretrained=False)
         num_features = model.classifier[1].in_features
-        model.classifier[1] = torch.nn.Linear(num_features, 2)  # 2 classes: Benign, Malignant
+        model.classifier[1] = torch.nn.Linear(num_features, 2)
 
-        # Load state dictionary
         state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
-        model.load_state_dict(state_dict, strict=False)
+        model.load_state_dict(state_dict, strict=True)
 
         model.eval()
-        return model
+        return torch.jit.script(model)
 
     except Exception as e:
         st.error(f"Error loading the model: {e}")
@@ -38,7 +36,6 @@ def load_model():
 
 model = load_model()
 
-# Updated preprocessing function for skin lesion images
 def preprocess_image(image):
     transform = transforms.Compose([
         transforms.Resize(256),
@@ -48,12 +45,11 @@ def preprocess_image(image):
     ])
     return transform(image).unsqueeze(0)
 
-# Prediction function remains unchanged
+@torch.no_grad()
 def predict(image):
-    with torch.no_grad():
-        outputs = model(image)
-        probabilities = torch.nn.functional.softmax(outputs, dim=1).squeeze().tolist()
-        return probabilities
+    outputs = model(image)
+    probabilities = torch.nn.functional.softmax(outputs, dim=1).squeeze().tolist()
+    return probabilities
 
 st.title("OncoAI")
 st.subheader("Detect Benign or Malignant Skin Lesions")
@@ -87,13 +83,11 @@ if img:
             
             st.markdown("<h3>Probabilities:</h3>", unsafe_allow_html=True)
             
-            # Define colors for each stage
-            colors = {"Benign": "#00ff00", "Malignant": "#ff0000"}  # Green for Benign, Red for Malignant
+            colors = {"Benign": "#00ff00", "Malignant": "#ff0000"}
             
             for stage, prob in zip(stages, probabilities):
                 st.write(f"<h4 style='font-size: 22px;'><strong>{stage}:</strong> {prob * 100:.2f}%</h4>", unsafe_allow_html=True)
                 
-                # Custom progress bar with color styling
                 progress_html = f"""
                 <div style="background-color: #e0e0e0; border-radius: 25px; width: 100%; height: 18px; margin-bottom: 10px;">
                     <div style="background-color: {colors[stage]}; width: {prob * 100}%; height: 100%; border-radius: 25px;"></div>
