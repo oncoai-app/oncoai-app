@@ -91,7 +91,7 @@ if img:
             colors = {"Benign": "#00ff00", "Malignant": "#ff0000"}  # Green for Benign, Red for Malignant
             
             for stage, prob in zip(stages, probabilities):
-                st.write(f"{stage}: {prob * 100:.2f}%")
+                st.write(f"**{stage}:** {prob * 100:.2f}%")
                 
                 # Custom progress bar with color styling
                 progress_html = f"""
