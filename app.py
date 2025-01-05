@@ -88,15 +88,15 @@ if img:
             st.markdown("<h3>Probabilities:</h3>", unsafe_allow_html=True)
             
             # Define colors for each stage
-            colors = ["#00ff00", "#ff0000"]  # Green for Benign, Red for Malignant
+            colors = {"Benign": "#00ff00", "Malignant": "#ff0000"}  # Green for Benign, Red for Malignant
             
-            for stage, prob, color in zip(stages, probabilities, colors):
+            for stage, prob in zip(stages, probabilities):
                 st.write(f"{stage}: {prob * 100:.2f}%")
                 st.markdown(
                     f"""
                     <style>
                         .stProgress > div > div > div > div {{
-                            background-color: {color};
+                            background-color: {colors[stage]};
                         }}
                     </style>
                     """,
