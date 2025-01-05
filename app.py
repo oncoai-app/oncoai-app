@@ -5,8 +5,7 @@ from PIL import Image
 import requests
 import io
 import numpy as np
-from pytorch_grad_cam import GradCAM
-from pytorch_grad_cam.utils.image import show_cam_on_image
+import cv2
 
 st.set_page_config(
     page_title="OncoAI",
@@ -14,6 +13,41 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="auto",
 )
+
+# Custom GradCAM implementation
+class GradCAM:
+    def __init__(self, model, target_layer):
+        self.model = model
+        self.target_layer = target_layer
+        self.gradients = None
+        self.activations = None
+        
+        self.target_layer.register_forward_hook(self.save_activation)
+        self.target_layer.register_backward_hook(self.save_gradient)
+    
+    def save_activation(self, module, input, output):
+        self.activations = output.detach()
+    
+    def save_gradient(self, module, grad_input, grad_output):
+        self.gradients = grad_output[0].detach()
+    
+    def __call__(self, x):
+        self.model.zero_grad()
+        output = self.model(x)
+        
+        class_idx = output.argmax(dim=1)
+        one_hot = torch.zeros_like(output)
+        one_hot[0][class_idx] = 1
+        
+        output.backward(gradient=one_hot, retain_graph=True)
+        
+        weights = torch.mean(self.gradients, dim=[2, 3], keepdim=True)
+        cam = torch.sum(weights * self.activations, dim=1, keepdim=True)
+        cam = torch.relu(cam)
+        cam = cam - cam.min()
+        cam = cam / cam.max()
+        
+        return cam.squeeze().cpu().numpy()
 
 # Load model with caching
 @st.cache_resource
@@ -65,15 +99,18 @@ def predict(image_tensor):
 # Grad-CAM for visualization
 def generate_grad_cam(image_tensor):
     target_layer = model.features[-1]  # Last convolutional layer in EfficientNet-B0
-    cam = GradCAM(model=model, target_layers=[target_layer], use_cuda=False)
+    cam = GradCAM(model=model, target_layer=target_layer)
     
-    grayscale_cam = cam(input_tensor=image_tensor)[0]
+    grayscale_cam = cam(image_tensor)
     rgb_image = image_tensor.squeeze().permute(1, 2, 0).numpy()
     rgb_image = (rgb_image * [0.229, 0.224, 0.225]) + [0.485, 0.456, 0.406]
     rgb_image = np.clip(rgb_image, 0, 1)
     
-    cam_image = show_cam_on_image(rgb_image, grayscale_cam, use_rgb=True)
-    return cam_image
+    heatmap = cv2.applyColorMap(np.uint8(255 * grayscale_cam), cv2.COLORMAP_JET)
+    heatmap = np.float32(heatmap) / 255
+    cam_image = heatmap + rgb_image
+    cam_image = cam_image / np.max(cam_image)
+    return np.uint8(255 * cam_image)
 
 st.title("OncoAI")
 st.subheader("Detect Benign or Malignant Skin Lesions")
