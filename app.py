@@ -5,7 +5,6 @@ from PIL import Image
 import requests
 import io
 import numpy as np
-import cv2
 
 st.set_page_config(
     page_title="OncoAI",
@@ -98,7 +97,7 @@ def predict(image_tensor):
 
 # Grad-CAM for visualization
 def generate_grad_cam(image_tensor):
-    target_layer = model.features[-1]  # Last convolutional layer in EfficientNet-B0
+    target_layer = model.features[-1]
     cam = GradCAM(model=model, target_layer=target_layer)
     
     grayscale_cam = cam(image_tensor)
@@ -106,11 +105,16 @@ def generate_grad_cam(image_tensor):
     rgb_image = (rgb_image * [0.229, 0.224, 0.225]) + [0.485, 0.456, 0.406]
     rgb_image = np.clip(rgb_image, 0, 1)
     
-    heatmap = cv2.applyColorMap(np.uint8(255 * grayscale_cam), cv2.COLORMAP_JET)
-    heatmap = np.float32(heatmap) / 255
-    cam_image = heatmap + rgb_image
-    cam_image = cam_image / np.max(cam_image)
-    return np.uint8(255 * cam_image)
+    # Create heatmap using PIL
+    heatmap = Image.fromarray(np.uint8(grayscale_cam * 255))
+    heatmap = heatmap.resize((224, 224))
+    heatmap = heatmap.convert("RGB")
+    
+    # Overlay heatmap on original image
+    original_image = Image.fromarray(np.uint8(rgb_image * 255))
+    cam_image = Image.blend(original_image, heatmap, 0.4)
+    
+    return np.array(cam_image)
 
 st.title("OncoAI")
 st.subheader("Detect Benign or Malignant Skin Lesions")
