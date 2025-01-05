@@ -92,17 +92,14 @@ if img:
             
             for stage, prob in zip(stages, probabilities):
                 st.write(f"{stage}: {prob * 100:.2f}%")
-                st.markdown(
-                    f"""
-                    <style>
-                        .stProgress > div > div > div > div {{
-                            background-color: {colors[stage]};
-                        }}
-                    </style>
-                    """,
-                    unsafe_allow_html=True
-                )
-                st.progress(prob)
+                
+                # Custom progress bar with color styling
+                progress_html = f"""
+                <div style="background-color: #e0e0e0; border-radius: 25px; width: 100%; height: 24px; margin-bottom: 10px;">
+                    <div style="background-color: {colors[stage]}; width: {prob * 100}%; height: 100%; border-radius: 25px;"></div>
+                </div>
+                """
+                st.markdown(progress_html, unsafe_allow_html=True)
 
         except Exception as e:
             st.error(f"Error during prediction: {e}")
