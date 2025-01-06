@@ -10,28 +10,37 @@ from io import BytesIO
 
 # Page Configuration
 st.set_page_config(
-    page_title="OncoAI",
-    page_icon="🩺",
+    page_title="OculAI",
+    page_icon="👁️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 # Constants
-MODEL_URL = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/ss_model.pth"
-CATEGORIES = ["Benign", "Malignant"]
+MODEL_URL = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/found_eyegvd_94.pth"
+CATEGORIES = ["Normal", "Cataracts", "Diabetic Retinopathy", "Glaucoma"]
 CONDITION_DESCRIPTIONS = {
-    "Benign": "The lesion appears non-cancerous and typically does not pose a threat to health.",
-    "Malignant": "The lesion may be cancerous and requires immediate medical attention."
+    "Normal": "The eye appears healthy with no detected abnormalities.",
+    "Cataracts": "A clouding of the lens in the eye that affects vision.",
+    "Diabetic Retinopathy": "Damage to the retina caused by complications of diabetes.",
+    "Glaucoma": "A group of eye conditions that damage the optic nerve, often due to high pressure."
 }
-COLORS = {"Benign": "#00ff00", "Malignant": "#ff0000"}
+COLORS = {
+    "Normal": "#00ff00",
+    "Cataracts": "#ffff00",
+    "Diabetic Retinopathy": "#ff0000",
+    "Glaucoma": "#0082cb"
+}
 
 # Constants for pre-training
-ONCOBANK_URL = "https://oncoai.org/oncobank"
+OCULOBANK_URL = "https://oculai.org/oculobank"
 CATEGORY_FOLDERS = {
-    "Benign": "ben",
-    "Malignant": "mal"
+    "Normal": "N",
+    "Cataracts": "ctr",
+    "Diabetic Retinopathy": "dr",
+    "Glaucoma": "glc"
 }
-PRE_TRAIN_SAMPLES = 5  # Number of samples per category for pre-training
+PRE_TRAIN_SAMPLES = 25  # Number of samples per category for pre-training
 
 # Preprocess image with caching
 @st.cache_data(show_spinner=False)
@@ -48,7 +57,7 @@ def preprocess_image(image):
 def fetch_pre_train_images():
     pre_train_data = []
     for category, folder in CATEGORY_FOLDERS.items():
-        url = f"{ONCOBANK_URL}/{folder}"
+        url = f"{OCULOBANK_URL}/{folder}"
         try:
             response = requests.get(url)
             response.raise_for_status()
@@ -82,7 +91,7 @@ def load_model():
             model.train()
             optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
             criterion = torch.nn.CrossEntropyLoss()
-            for _ in range(5):  # 5 quick iterations for fine-tuning
+            for _ in range(10):  # 10 iterations for fine-tuning
                 random.shuffle(pre_train_data)
                 for inputs, labels in pre_train_data:
                     optimizer.zero_grad()
@@ -111,14 +120,14 @@ with st.sidebar:
 
     img = None
     if input_method == "Upload Image":
-        uploaded_file = st.file_uploader("Upload Skin Lesion Image", type=["jpg", "png", "jpeg"])
+        uploaded_file = st.file_uploader("Upload Eye Image", type=["jpg", "png", "jpeg"])
         if uploaded_file:
             try:
                 img = Image.open(uploaded_file).convert("RGB")
             except Exception as e:
                 st.error(f"Invalid image file: {e}")
     elif input_method == "Capture from Camera":
-        camera_image = st.camera_input("Capture Skin Lesion Image")
+        camera_image = st.camera_input("Capture Eye Image")
         if camera_image:
             try:
                 img = Image.open(camera_image).convert("RGB")
@@ -126,9 +135,9 @@ with st.sidebar:
                 st.error(f"Invalid camera input: {e}")
 
 # Main Content Area for Analysis and Diagnosis
-st.title("🩺 OncoAI")
-st.subheader("Detect Benign or Malignant Skin Lesions")
-st.markdown("Upload or capture a skin lesion image from the sidebar to analyze potential conditions.")
+st.title("👁️ OculAI")
+st.subheader("One Model, Countless Diseases")
+st.markdown("Upload or capture an eye image from the sidebar to analyze potential eye conditions.")
 
 # Model Loading and Pre-training Spinner
 with st.spinner("Loading AI Model and Pre-training..."):
@@ -151,7 +160,7 @@ if img:
             prediction = CATEGORIES[prediction_idx]
             confidence_score = probabilities[prediction_idx] * 100
 
-            st.markdown(f"<h3 style='color: {COLORS[prediction]}'>Predicted Class: {prediction}</h3>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='color: {COLORS[prediction]}'>Predicted Category: {prediction}</h3>", unsafe_allow_html=True)
             st.markdown(f"<p>{CONDITION_DESCRIPTIONS[prediction]}</p>", unsafe_allow_html=True)
             st.markdown(f"<strong>Confidence Score:</strong> {confidence_score:.2f}%", unsafe_allow_html=True)
 
@@ -166,16 +175,16 @@ if img:
                 """
                 st.markdown(progress_html, unsafe_allow_html=True)
 
-            # Additional Insights Section
+            # Additional Analysis Features (Optional)
             st.markdown("<h3>Additional Insights:</h3>", unsafe_allow_html=True)
-            if prediction == "Malignant":
+            if prediction != "Normal":
                 st.warning(
-                    "The AI detected signs of malignancy. Please consult a dermatologist or oncologist immediately for further evaluation."
+                    f"The AI detected signs of {prediction}. Please consult an ophthalmologist for further evaluation."
                 )
             else:
-                st.success("The lesion appears benign. However, regular monitoring is recommended.")
+                st.success("The eye appears healthy! No abnormalities detected.")
 
         except Exception as e:
             st.error(f"Error during prediction: {e}")
 else:
-    st.info("Please upload or capture a skin lesion image from the sidebar to proceed.")
+    st.info("Please upload or capture an eye image from the sidebar to proceed.")
