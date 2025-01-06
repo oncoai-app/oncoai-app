@@ -105,7 +105,7 @@ if img:
 
             st.markdown(f"<h3 style='color: {COLORS[prediction]}'>Predicted Class: {prediction}</h3>", unsafe_allow_html=True)
             st.markdown(f"<p>{CONDITION_DESCRIPTIONS[prediction]}</p>", unsafe_allow_html=True)
-            st.markdown(f"<strong>Confidence Score:</strong> {confidence_score:.2f}%")
+            st.markdown(f"<strong>Confidence Score:</strong> {confidence_score:.2f}%", unsafe_allow_html=True)
 
             # Display Probabilities with Progress Bars and Colors
             st.markdown("<h3>Category Probabilities:</h3>", unsafe_allow_html=True)
