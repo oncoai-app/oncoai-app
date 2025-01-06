@@ -5,6 +5,8 @@ from PIL import Image
 import requests
 import io
 import numpy as np
+import random
+from io import BytesIO
 
 # Page Configuration
 st.set_page_config(
@@ -23,22 +25,13 @@ CONDITION_DESCRIPTIONS = {
 }
 COLORS = {"Benign": "#00ff00", "Malignant": "#ff0000"}
 
-# Load model with caching
-@st.cache_resource(show_spinner=False)
-def load_model():
-    try:
-        response = requests.get(MODEL_URL)
-        response.raise_for_status()
-        model = models.efficientnet_b0(pretrained=True)
-        num_features = model.classifier[1].in_features
-        model.classifier[1] = torch.nn.Linear(num_features, len(CATEGORIES))
-        state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
-        model.load_state_dict(state_dict, strict=True)
-        model.eval()
-        return model
-    except Exception as e:
-        st.error(f"Error loading the model: {e}")
-        raise e
+# Constants for pre-training
+ONCOBANK_URL = "https://oncoai.org/oncobank"
+CATEGORY_FOLDERS = {
+    "Benign": "ben",
+    "Malignant": "mal"
+}
+PRE_TRAIN_SAMPLES = 5  # Number of samples per category for pre-training
 
 # Preprocess image with caching
 @st.cache_data(show_spinner=False)
@@ -50,6 +43,59 @@ def preprocess_image(image):
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
     return transform(image).unsqueeze(0)
+
+@st.cache_resource(show_spinner=False)
+def fetch_pre_train_images():
+    pre_train_data = []
+    for category, folder in CATEGORY_FOLDERS.items():
+        url = f"{ONCOBANK_URL}/{folder}"
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            image_list = response.json()  # Assuming the API returns a list of image filenames
+            selected_images = random.sample(image_list, min(PRE_TRAIN_SAMPLES, len(image_list)))
+            for image_name in selected_images:
+                image_url = f"{url}/{image_name}"
+                img_response = requests.get(image_url)
+                img_response.raise_for_status()
+                img = Image.open(BytesIO(img_response.content)).convert("RGB")
+                pre_train_data.append((preprocess_image(img), CATEGORIES.index(category)))
+        except Exception as e:
+            st.warning(f"Error fetching pre-training data for {category}: {e}")
+    return pre_train_data
+
+# Load model with caching
+@st.cache_resource(show_spinner=False)
+def load_model():
+    try:
+        response = requests.get(MODEL_URL)
+        response.raise_for_status()
+        model = models.efficientnet_b0(pretrained=True)
+        num_features = model.classifier[1].in_features
+        model.classifier[1] = torch.nn.Linear(num_features, len(CATEGORIES))
+        state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
+        model.load_state_dict(state_dict, strict=True)
+        
+        # Pre-training step
+        pre_train_data = fetch_pre_train_images()
+        if pre_train_data:
+            model.train()
+            optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+            criterion = torch.nn.CrossEntropyLoss()
+            for _ in range(5):  # 5 quick iterations for fine-tuning
+                random.shuffle(pre_train_data)
+                for inputs, labels in pre_train_data:
+                    optimizer.zero_grad()
+                    outputs = model(inputs)
+                    loss = criterion(outputs, torch.tensor([labels]))
+                    loss.backward()
+                    optimizer.step()
+        
+        model.eval()
+        return model
+    except Exception as e:
+        st.error(f"Error loading or pre-training the model: {e}")
+        raise e
 
 # Prediction function
 @torch.no_grad()
@@ -84,9 +130,11 @@ st.title("🩺 OncoAI")
 st.subheader("Detect Benign or Malignant Skin Lesions")
 st.markdown("Upload or capture a skin lesion image from the sidebar to analyze potential conditions.")
 
-# Model Loading Spinner
-with st.spinner("Loading AI Model..."):
+# Model Loading and Pre-training Spinner
+with st.spinner("Loading AI Model and Pre-training..."):
     model = load_model()
+
+st.success("Model loaded and pre-trained successfully!")
 
 if img:
     # Display Selected Image in Main Content Area
@@ -118,7 +166,7 @@ if img:
                 """
                 st.markdown(progress_html, unsafe_allow_html=True)
 
-            # Additional Insights Section (Optional)
+            # Additional Insights Section
             st.markdown("<h3>Additional Insights:</h3>", unsafe_allow_html=True)
             if prediction == "Malignant":
                 st.warning(
