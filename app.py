@@ -5,177 +5,168 @@ from PIL import Image
 import requests
 import io
 import numpy as np
-import random
-from io import BytesIO
+import cv2
 
-# Page Configuration
 st.set_page_config(
     page_title="OncoAI",
     page_icon="🩺",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="auto",
 )
 
-# Constants
-MODEL_URL = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/oncosave.h5"
-CATEGORIES = ["Benign", "Malignant"]
-CONDITION_DESCRIPTIONS = {
-    "Benign": "The lesion appears non-cancerous and typically does not pose a threat to health.",
-    "Malignant": "The lesion may be cancerous and requires immediate medical attention."
-}
-COLORS = {"Benign": "#00ff00", "Malignant": "#ff0000"}
+# Custom GradCAM implementation
+class GradCAM:
+    def __init__(self, model, target_layer):
+        self.model = model
+        self.target_layer = target_layer
+        self.gradients = None
+        self.activations = None
+        
+        self.target_layer.register_forward_hook(self.save_activation)
+        self.target_layer.register_backward_hook(self.save_gradient)
+    
+    def save_activation(self, module, input, output):
+        self.activations = output.detach()
+    
+    def save_gradient(self, module, grad_input, grad_output):
+        self.gradients = grad_output[0].detach()
+    
+    def __call__(self, x):
+        self.model.zero_grad()
+        output = self.model(x)
+        
+        class_idx = output.argmax(dim=1)
+        one_hot = torch.zeros_like(output)
+        one_hot[0][class_idx] = 1
+        
+        output.backward(gradient=one_hot, retain_graph=True)
+        
+        weights = torch.mean(self.gradients, dim=[2, 3], keepdim=True)
+        cam = torch.sum(weights * self.activations, dim=1, keepdim=True)
+        cam = torch.relu(cam)
+        cam = cam - cam.min()
+        cam = cam / cam.max()
+        
+        return cam.squeeze().cpu().numpy()
 
-# Constants for pre-training
-ONCOBANK_URL = "https://oncoai.org/oncobank"
-CATEGORY_FOLDERS = {
-    "Benign": "ben",
-    "Malignant": "mal"
-}
-PRE_TRAIN_SAMPLES = 25  # Number of samples per category for pre-training
+# Load model with caching
+@st.cache_resource
+def load_model():
+    try:
+        url = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/ss_model.pth"
+        response = requests.get(url)
+        response.raise_for_status()
 
-# Preprocess image with caching
-@st.cache_data(show_spinner=False)
-def preprocess_image(image):
-    transform = transforms.Compose([
+        # Load pretrained EfficientNet-B0 and modify classifier
+        model = models.efficientnet_b0(pretrained=True)
+        num_features = model.classifier[1].in_features
+        model.classifier[1] = torch.nn.Linear(num_features, 2)
+
+        state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
+        model.load_state_dict(state_dict, strict=True)
+
+        model.eval()
+        return model
+
+    except Exception as e:
+        st.error(f"Error loading the model: {e}")
+        raise e
+
+model = load_model()
+
+# Preprocess image with optional data augmentation
+def preprocess_image_with_augmentation(image, apply_augmentation=False):
+    transform_list = [
         transforms.Resize(256),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ])
+    ]
+    
+    if apply_augmentation:
+        transform_list.insert(0, transforms.RandomHorizontalFlip())
+        transform_list.insert(1, transforms.RandomRotation(15))
+    
+    transform = transforms.Compose(transform_list)
     return transform(image).unsqueeze(0)
 
-@st.cache_resource(show_spinner=False)
-def fetch_pre_train_images():
-    pre_train_data = []
-    for category, folder in CATEGORY_FOLDERS.items():
-        url = f"{ONCOBANK_URL}/{folder}"
-        try:
-            response = requests.get(url)
-            response.raise_for_status()
-            image_list = response.json()  # Assuming the API returns a list of image filenames
-            selected_images = random.sample(image_list, min(PRE_TRAIN_SAMPLES, len(image_list)))
-            for image_name in selected_images:
-                image_url = f"{url}/{image_name}"
-                img_response = requests.get(image_url)
-                img_response.raise_for_status()
-                img = Image.open(BytesIO(img_response.content)).convert("RGB")
-                pre_train_data.append((preprocess_image(img), CATEGORIES.index(category)))
-        except Exception as e:
-            st.warning(f"Error fetching pre-training data for {category}: {e}")
-    return pre_train_data
-
-# Load model with caching
-@st.cache_resource(show_spinner=False)
-def load_model():
-    try:
-        response = requests.get(MODEL_URL)
-        response.raise_for_status()
-        model = models.efficientnet_b0(pretrained=True)
-        num_features = model.classifier[1].in_features
-        model.classifier[1] = torch.nn.Linear(num_features, len(CATEGORIES))
-        state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
-        model.load_state_dict(state_dict, strict=True)
-        
-        # Pre-training step
-        pre_train_data = fetch_pre_train_images()
-        if pre_train_data:
-            model.train()
-            optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-            criterion = torch.nn.CrossEntropyLoss()
-            for _ in range(10):  # 10 iterations for fine-tuning
-                random.shuffle(pre_train_data)
-                for inputs, labels in pre_train_data:
-                    optimizer.zero_grad()
-                    outputs = model(inputs)
-                    loss = criterion(outputs, torch.tensor([labels]))
-                    loss.backward()
-                    optimizer.step()
-        
-        model.eval()
-        return model
-    except Exception as e:
-        st.error(f"Error loading or pre-training the model: {e}")
-        raise e
-
-# Prediction function
 @torch.no_grad()
-def predict(image_tensor, model):
+def predict(image_tensor):
     outputs = model(image_tensor)
     probabilities = torch.nn.functional.softmax(outputs, dim=1).squeeze().tolist()
     return probabilities
 
-# Sidebar for Input Method Selection and Image Upload/Capture
-with st.sidebar:
-    st.header("Input Image")
-    input_method = st.radio("Choose Input Method", ("Upload Image", "Capture from Camera"))
+# Grad-CAM for visualization
+def generate_grad_cam(image_tensor):
+    target_layer = model.features[-1]  # Last convolutional layer in EfficientNet-B0
+    cam = GradCAM(model=model, target_layer=target_layer)
+    
+    grayscale_cam = cam(image_tensor)
+    rgb_image = image_tensor.squeeze().permute(1, 2, 0).numpy()
+    rgb_image = (rgb_image * [0.229, 0.224, 0.225]) + [0.485, 0.456, 0.406]
+    rgb_image = np.clip(rgb_image, 0, 1)
+    
+    heatmap = cv2.applyColorMap(np.uint8(255 * grayscale_cam), cv2.COLORMAP_JET)
+    heatmap = np.float32(heatmap) / 255
+    cam_image = heatmap + rgb_image
+    cam_image = cam_image / np.max(cam_image)
+    return np.uint8(255 * cam_image)
 
-    img = None
-    if input_method == "Upload Image":
-        uploaded_file = st.file_uploader("Upload Skin Lesion Image", type=["jpg", "png", "jpeg"])
-        if uploaded_file:
-            try:
-                img = Image.open(uploaded_file).convert("RGB")
-            except Exception as e:
-                st.error(f"Invalid image file: {e}")
-    elif input_method == "Capture from Camera":
-        camera_image = st.camera_input("Capture Skin Lesion Image")
-        if camera_image:
-            try:
-                img = Image.open(camera_image).convert("RGB")
-            except Exception as e:
-                st.error(f"Invalid camera input: {e}")
-
-# Main Content Area for Analysis and Diagnosis
-st.title("🩺 OncoAI")
+st.title("OncoAI")
 st.subheader("Detect Benign or Malignant Skin Lesions")
-st.markdown("Upload or capture a skin lesion image from the sidebar to analyze potential conditions.")
 
-# Model Loading and Pre-training Spinner
-with st.spinner("Loading AI Model and Pre-training..."):
-    model = load_model()
+# Input method selection
+input_method = st.radio("Choose Input Method", ("Upload Image", "Capture from Camera"))
 
-st.success("Model loaded and pre-trained successfully!")
+img = None
+
+if input_method == "Upload Image":
+    uploaded_file = st.file_uploader("Upload Skin Lesion Image", type=["jpg", "png", "jpeg"])
+    if uploaded_file:
+        img = Image.open(uploaded_file).convert("RGB")
+elif input_method == "Capture from Camera":
+    camera_image = st.camera_input("Capture Skin Lesion Image")
+    if camera_image:
+        img = Image.open(camera_image).convert("RGB")
 
 if img:
-    # Display Selected Image in Main Content Area
-    st.image(img, caption="Selected Image", use_column_width=True)
-
-    # Analysis and Prediction Section
     with st.spinner("Analyzing..."):
+        st.image(img, caption="Selected Image", use_column_width=True)
+
+        # Option to apply data augmentation
+        apply_augmentation = st.checkbox("Apply Data Augmentation")
+        
+        input_tensor = preprocess_image_with_augmentation(img, apply_augmentation=apply_augmentation)
+        
         try:
-            input_tensor = preprocess_image(img)
-            probabilities = predict(input_tensor, model)
+            probabilities = predict(input_tensor)
 
-            # Display Predicted Category and Description
+            stages = ["Benign", "Malignant"]
             prediction_idx = np.argmax(probabilities)
-            prediction = CATEGORIES[prediction_idx]
-            confidence_score = probabilities[prediction_idx] * 100
+            prediction = stages[prediction_idx]
 
-            st.markdown(f"<h3 style='color: {COLORS[prediction]}'>Predicted Class: {prediction}</h3>", unsafe_allow_html=True)
-            st.markdown(f"<p>{CONDITION_DESCRIPTIONS[prediction]}</p>", unsafe_allow_html=True)
-            st.markdown(f"<strong>Confidence Score:</strong> {confidence_score:.2f}%", unsafe_allow_html=True)
-
-            # Display Probabilities with Progress Bars and Colors
-            st.markdown("<h3>Category Probabilities:</h3>", unsafe_allow_html=True)
-            for category, prob in zip(CATEGORIES, probabilities):
-                st.markdown(f"<strong>{category}:</strong> {prob * 100:.2f}%", unsafe_allow_html=True)
+            # Display predictions and probabilities
+            st.markdown(f"<h3>Predicted Class: {prediction}</h3>", unsafe_allow_html=True)
+            
+            st.markdown("<h3>Probabilities:</h3>", unsafe_allow_html=True)
+            
+            colors = {"Benign": "#00ff00", "Malignant": "#ff0000"}
+            
+            for stage, prob in zip(stages, probabilities):
+                st.write(f"<h4 style='font-size: 22px;'><strong>{stage}:</strong> {prob * 100:.2f}%</h4>", unsafe_allow_html=True)
+                
                 progress_html = f"""
                 <div style="background-color: #e0e0e0; border-radius: 25px; width: 100%; height: 18px; margin-bottom: 10px;">
-                    <div style="background-color: {COLORS[category]}; width: {prob * 100}%; height: 100%; border-radius: 25px;"></div>
+                    <div style="background-color: {colors[stage]}; width: {prob * 100}%; height: 100%; border-radius: 25px;"></div>
                 </div>
                 """
                 st.markdown(progress_html, unsafe_allow_html=True)
 
-            # Additional Insights Section
-            st.markdown("<h3>Additional Insights:</h3>", unsafe_allow_html=True)
-            if prediction == "Malignant":
-                st.warning(
-                    "The AI detected signs of malignancy. Please consult a dermatologist or oncologist immediately for further evaluation."
-                )
-            else:
-                st.success("The lesion appears benign. However, regular monitoring is recommended.")
-
+            # Grad-CAM visualization
+            cam_image = generate_grad_cam(input_tensor)
+            st.image(cam_image, caption="Grad-CAM Visualization", use_column_width=True)
+        
         except Exception as e:
             st.error(f"Error during prediction: {e}")
 else:
-    st.info("Please upload or capture a skin lesion image from the sidebar to proceed.")
+    st.info("Please upload or capture a skin lesion image to proceed.")
