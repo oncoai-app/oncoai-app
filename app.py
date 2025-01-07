@@ -3,6 +3,7 @@ import tensorflow as tf
 from PIL import Image
 import numpy as np
 import requests
+import os
 
 # Page Configuration
 st.set_page_config(
@@ -46,26 +47,46 @@ COLORS = {
 def preprocess_image(image):
     img = image.resize((128, 128))  # Resize to match model input size
     img_array = np.array(img) / 255.0  # Normalize pixel values to [0, 1]
-    return np.expand_dims(img_array, axis=0)  # Add batch dimension
+    return np.expand_dims(img_array, axis=0).astype(np.float32)  # Add batch dimension and ensure float32
 
 # Load model
 @st.cache_resource(show_spinner=False)
 def load_model():
     try:
-        response = requests.get(MODEL_URL)
-        response.raise_for_status()
-        with open("oncosave.h5", "wb") as f:
-            f.write(response.content)
-        model = tf.keras.models.load_model("oncosave.h5")
-        return model
+        if not os.path.exists("oncosave.tflite"):
+            response = requests.get(MODEL_URL)
+            response.raise_for_status()
+            with open("oncosave.h5", "wb") as f:
+                f.write(response.content)
+            
+            # Convert to TFLite
+            model = tf.keras.models.load_model("oncosave.h5")
+            converter = tf.lite.TFLiteConverter.from_keras_model(model)
+            tflite_model = converter.convert()
+            
+            with open("oncosave.tflite", "wb") as f:
+                f.write(tflite_model)
+            
+            os.remove("oncosave.h5")  # Remove the .h5 file to save space
+        
+        # Load TFLite model
+        interpreter = tf.lite.Interpreter(model_path="oncosave.tflite")
+        interpreter.allocate_tensors()
+        return interpreter
     except Exception as e:
         st.error(f"Error loading the model: {e}")
         raise e
 
 # Prediction function
-def predict(image_tensor, model):
-    probabilities = model.predict(image_tensor)[0]  # Get predictions for the single image
-    return probabilities
+def predict(image_tensor, interpreter):
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
+    
+    interpreter.set_tensor(input_details[0]['index'], image_tensor)
+    interpreter.invoke()
+    
+    probabilities = interpreter.get_tensor(output_details[0]['index'])
+    return probabilities[0]
 
 # Sidebar for Input Method Selection and Image Upload/Capture
 with st.sidebar:
@@ -95,7 +116,7 @@ st.markdown("Upload or capture a skin lesion image from the sidebar to analyze p
 
 # Model Loading Spinner
 with st.spinner("Loading AI Model..."):
-    model = load_model()
+    interpreter = load_model()
 
 st.success("Model loaded successfully!")
 
@@ -107,7 +128,7 @@ if img:
     with st.spinner("Analyzing..."):
         try:
             input_tensor = preprocess_image(img)
-            probabilities = predict(input_tensor, model)
+            probabilities = predict(input_tensor, interpreter)
 
             # Display Predicted Category and Description
             prediction_idx = np.argmax(probabilities)
