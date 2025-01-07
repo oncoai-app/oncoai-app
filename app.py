@@ -2,9 +2,7 @@ import streamlit as st
 import tensorflow as tf
 from PIL import Image
 import numpy as np
-
-# Disable eager execution
-tf.compat.v1.disable_eager_execution()
+import requests
 
 # Page Configuration
 st.set_page_config(
@@ -15,7 +13,7 @@ st.set_page_config(
 )
 
 # Constants
-MODEL_PATH = "oncosave.h5"  # Path to your .h5 model file
+MODEL_URL = "https://huggingface.co/oculotest/onco/resolve/main/oncosave.h5"
 CATEGORIES = [
     "Acne and Rosacea Photos", 
     "Actinic Keratosis Basal Cell Carcinoma and other Malignant Lesions",
@@ -54,7 +52,11 @@ def preprocess_image(image):
 @st.cache_resource(show_spinner=False)
 def load_model():
     try:
-        model = tf.keras.models.load_model(MODEL_PATH)
+        response = requests.get(MODEL_URL)
+        response.raise_for_status()
+        with open("oncosave.h5", "wb") as f:
+            f.write(response.content)
+        model = tf.keras.models.load_model("oncosave.h5")
         return model
     except Exception as e:
         st.error(f"Error loading the model: {e}")
