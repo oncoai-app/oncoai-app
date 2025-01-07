@@ -17,7 +17,7 @@ st.set_page_config(
 )
 
 # Constants
-MODEL_URL = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/ss_model.pth"
+MODEL_URL = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/oncosave.h5"
 CATEGORIES = ["Benign", "Malignant"]
 CONDITION_DESCRIPTIONS = {
     "Benign": "The lesion appears non-cancerous and typically does not pose a threat to health.",
