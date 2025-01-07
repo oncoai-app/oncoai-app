@@ -3,7 +3,8 @@ import tensorflow as tf
 from PIL import Image
 import numpy as np
 import requests
-import io
+import os
+import tempfile
 
 # Page Configuration
 st.set_page_config(
@@ -47,36 +48,34 @@ COLORS = {
 def preprocess_image(image):
     img = image.resize((128, 128))  # Resize to match model input size
     img_array = np.array(img) / 255.0  # Normalize pixel values to [0, 1]
-    return np.expand_dims(img_array, axis=0).astype(np.float32)  # Add batch dimension and ensure float32
+    return np.expand_dims(img_array, axis=0)  # Add batch dimension
 
 # Load model
 @st.cache_resource(show_spinner=False)
 def load_model():
     try:
-        response = requests.get(MODEL_URL)
-        response.raise_for_status()
-        model_content = io.BytesIO(response.content)
-        
-        # Convert to TFLite
-        converter = tf.lite.TFLiteConverter.from_keras_model(tf.keras.models.load_model(model_content))
-        tflite_model = converter.convert()
-        
-        # Load TFLite model
-        interpreter = tf.lite.Interpreter(model_content=tflite_model)
-        interpreter.allocate_tensors()
-        return interpreter
+        with tempfile.TemporaryDirectory() as tmpdir:
+            model_path = os.path.join(tmpdir, "oncosave.h5")
+            
+            # Download the model
+            response = requests.get(MODEL_URL)
+            response.raise_for_status()
+            
+            # Save the model locally
+            with open(model_path, "wb") as f:
+                f.write(response.content)
+            
+            # Load the model
+            model = tf.keras.models.load_model(model_path)
+            return model
     except Exception as e:
         st.error(f"Error loading the model: {e}")
         return None
 
 # Prediction function
-def predict(image_tensor, interpreter):
-    input_details = interpreter.get_input_details()
-    output_details = interpreter.get_output_details()
-    
-    interpreter.set_tensor(input_details[0]['index'], image_tensor)
-    interpreter.invoke()
-    return interpreter.get_tensor(output_details[0]['index'])[0]
+def predict(image_tensor, model):
+    probabilities = model.predict(image_tensor)[0]
+    return probabilities
 
 # Sidebar for Input Method Selection and Image Upload/Capture
 with st.sidebar:
