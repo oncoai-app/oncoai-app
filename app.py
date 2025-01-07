@@ -1,10 +1,12 @@
 import streamlit as st
-import tensorflow as tf
+import torch
+from torchvision import transforms, models
 from PIL import Image
-import numpy as np
 import requests
-import os
-import tempfile
+import io
+import numpy as np
+import random
+from io import BytesIO
 
 # Page Configuration
 st.set_page_config(
@@ -15,66 +17,91 @@ st.set_page_config(
 )
 
 # Constants
-MODEL_URL = "https://huggingface.co/oculotest/onco/resolve/main/oncosave.h5"
-CATEGORIES = [
-    "Acne and Rosacea Photos", 
-    "Actinic Keratosis Basal Cell Carcinoma and other Malignant Lesions",
-    "Atopic Dermatitis Photos", 
-    "Cellulitis Impetigo and other Bacterial Infections",
-    "Eczema Photos", 
-    "Exanthems and Drug Eruptions", 
-    "Herpes HPV and other STDs Photos",
-    "Light Diseases and Disorders of Pigmentation", 
-    "Lupus and other Connective Tissue diseases",
-    "Melanoma Skin Cancer Nevi and Moles", 
-    "Poison Ivy Photos and other Contact Dermatitis",
-    "Psoriasis pictures Lichen Planus and related diseases", 
-    "Seborrheic Keratoses and other Benign Tumors",
-    "Systemic Disease", 
-    "Tinea Ringworm Candidiasis and other Fungal Infections", 
-    "Urticaria Hives",
-    "Vascular Tumors", 
-    "Vasculitis Photos", 
-    "Warts Molluscum and other Viral Infections"
-]
+MODEL_URL = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/oncosave.h5"
+CATEGORIES = ["Benign", "Malignant"]
 CONDITION_DESCRIPTIONS = {
-    category: f"Description for {category}" for category in CATEGORIES  # Replace with actual descriptions
+    "Benign": "The lesion appears non-cancerous and typically does not pose a threat to health.",
+    "Malignant": "The lesion may be cancerous and requires immediate medical attention."
 }
-COLORS = {
-    category: f"#{np.random.randint(0, 0xFFFFFF):06x}" for category in CATEGORIES  # Random placeholder colors
-}
+COLORS = {"Benign": "#00ff00", "Malignant": "#ff0000"}
 
-# Preprocess image
+# Constants for pre-training
+ONCOBANK_URL = "https://oncoai.org/oncobank"
+CATEGORY_FOLDERS = {
+    "Benign": "ben",
+    "Malignant": "mal"
+}
+PRE_TRAIN_SAMPLES = 25  # Number of samples per category for pre-training
+
+# Preprocess image with caching
+@st.cache_data(show_spinner=False)
 def preprocess_image(image):
-    img = image.resize((128, 128))  # Resize to match model input size
-    img_array = np.array(img) / 255.0  # Normalize pixel values to [0, 1]
-    return np.expand_dims(img_array, axis=0)  # Add batch dimension
+    transform = transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
+    return transform(image).unsqueeze(0)
 
-# Load model
+@st.cache_resource(show_spinner=False)
+def fetch_pre_train_images():
+    pre_train_data = []
+    for category, folder in CATEGORY_FOLDERS.items():
+        url = f"{ONCOBANK_URL}/{folder}"
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            image_list = response.json()  # Assuming the API returns a list of image filenames
+            selected_images = random.sample(image_list, min(PRE_TRAIN_SAMPLES, len(image_list)))
+            for image_name in selected_images:
+                image_url = f"{url}/{image_name}"
+                img_response = requests.get(image_url)
+                img_response.raise_for_status()
+                img = Image.open(BytesIO(img_response.content)).convert("RGB")
+                pre_train_data.append((preprocess_image(img), CATEGORIES.index(category)))
+        except Exception as e:
+            st.warning(f"Error fetching pre-training data for {category}: {e}")
+    return pre_train_data
+
+# Load model with caching
 @st.cache_resource(show_spinner=False)
 def load_model():
     try:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            model_path = os.path.join(tmpdir, "oncosave.h5")
-            
-            # Download the model
-            response = requests.get(MODEL_URL)
-            response.raise_for_status()
-            
-            # Save the model locally
-            with open(model_path, "wb") as f:
-                f.write(response.content)
-            
-            # Load the model
-            model = tf.keras.models.load_model(model_path)
-            return model
+        response = requests.get(MODEL_URL)
+        response.raise_for_status()
+        model = models.efficientnet_b0(pretrained=True)
+        num_features = model.classifier[1].in_features
+        model.classifier[1] = torch.nn.Linear(num_features, len(CATEGORIES))
+        state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
+        model.load_state_dict(state_dict, strict=True)
+        
+        # Pre-training step
+        pre_train_data = fetch_pre_train_images()
+        if pre_train_data:
+            model.train()
+            optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+            criterion = torch.nn.CrossEntropyLoss()
+            for _ in range(10):  # 10 iterations for fine-tuning
+                random.shuffle(pre_train_data)
+                for inputs, labels in pre_train_data:
+                    optimizer.zero_grad()
+                    outputs = model(inputs)
+                    loss = criterion(outputs, torch.tensor([labels]))
+                    loss.backward()
+                    optimizer.step()
+        
+        model.eval()
+        return model
     except Exception as e:
-        st.error(f"Error loading the model: {e}")
-        return None
+        st.error(f"Error loading or pre-training the model: {e}")
+        raise e
 
 # Prediction function
+@torch.no_grad()
 def predict(image_tensor, model):
-    probabilities = model.predict(image_tensor)[0]
+    outputs = model(image_tensor)
+    probabilities = torch.nn.functional.softmax(outputs, dim=1).squeeze().tolist()
     return probabilities
 
 # Sidebar for Input Method Selection and Image Upload/Capture
@@ -100,18 +127,14 @@ with st.sidebar:
 
 # Main Content Area for Analysis and Diagnosis
 st.title("🩺 OncoAI")
-st.subheader("Detect Skin Conditions Across Multiple Categories")
+st.subheader("Detect Benign or Malignant Skin Lesions")
 st.markdown("Upload or capture a skin lesion image from the sidebar to analyze potential conditions.")
 
-# Model Loading Spinner
-with st.spinner("Loading AI Model..."):
+# Model Loading and Pre-training Spinner
+with st.spinner("Loading AI Model and Pre-training..."):
     model = load_model()
 
-if model is None:
-    st.error("Failed to load the model. Please try again later.")
-    st.stop()
-
-st.success("Model loaded successfully!")
+st.success("Model loaded and pre-trained successfully!")
 
 if img:
     # Display Selected Image in Main Content Area
@@ -142,6 +165,15 @@ if img:
                 </div>
                 """
                 st.markdown(progress_html, unsafe_allow_html=True)
+
+            # Additional Insights Section
+            st.markdown("<h3>Additional Insights:</h3>", unsafe_allow_html=True)
+            if prediction == "Malignant":
+                st.warning(
+                    "The AI detected signs of malignancy. Please consult a dermatologist or oncologist immediately for further evaluation."
+                )
+            else:
+                st.success("The lesion appears benign. However, regular monitoring is recommended.")
 
         except Exception as e:
             st.error(f"Error during prediction: {e}")
