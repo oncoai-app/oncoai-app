@@ -3,6 +3,9 @@ import tensorflow as tf
 from PIL import Image
 import numpy as np
 
+# Disable eager execution
+tf.compat.v1.disable_eager_execution()
+
 # Page Configuration
 st.set_page_config(
     page_title="OncoAI",
