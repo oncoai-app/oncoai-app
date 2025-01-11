@@ -5,7 +5,6 @@ from PIL import Image
 import requests
 import io
 import numpy as np
-import cv2
 
 # Page configuration
 st.set_page_config(
@@ -26,41 +25,6 @@ class_names = [
     "Vascular Tumors", "Vasculitis", "Warts/Molluscum/Viral Infections"
 ]
 
-# Grad-CAM implementation
-class GradCAM:
-    def __init__(self, model, target_layer):
-        self.model = model
-        self.target_layer = target_layer
-        self.gradients = None
-        self.activations = None
-        
-        self.target_layer.register_forward_hook(self.save_activation)
-        self.target_layer.register_full_backward_hook(self.save_gradient)
-    
-    def save_activation(self, module, input, output):
-        self.activations = output.detach()
-    
-    def save_gradient(self, module, grad_input, grad_output):
-        self.gradients = grad_output[0].detach()
-    
-    def __call__(self, x):
-        self.model.zero_grad()
-        output = self.model(x)
-        
-        class_idx = output.argmax(dim=1)
-        one_hot = torch.zeros_like(output)
-        one_hot[0][class_idx] = 1
-        
-        output.backward(gradient=one_hot, retain_graph=True)
-        
-        weights = torch.mean(self.gradients, dim=[2, 3], keepdim=True)
-        cam = torch.sum(weights * self.activations, dim=1, keepdim=True)
-        cam = torch.relu(cam)
-        cam = cam - cam.min()
-        cam = cam / cam.max()
-        
-        return cam.squeeze().cpu().numpy()
-
 # Load model with caching
 @st.cache_resource
 def load_model():
@@ -71,8 +35,6 @@ def load_model():
 
         # Load pretrained EfficientNet-B0 and modify classifier for 20 classes
         model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.DEFAULT)
-        
-        # Update classifier for 20 classes
         num_features = model.classifier[1].in_features if isinstance(model.classifier[1], torch.nn.Linear) else model.classifier.in_features
         model.classifier[1] = torch.nn.Linear(num_features, len(class_names))
 
@@ -88,7 +50,7 @@ def load_model():
 
 model = load_model()
 
-# Preprocess image with advanced data augmentation
+# Preprocess image
 def preprocess_image(image):
     transform_list = [
         transforms.Resize(256),
@@ -105,23 +67,6 @@ def predict(image_tensor):
     outputs = model(image_tensor)
     probabilities = torch.nn.functional.softmax(outputs, dim=1).squeeze().tolist()
     return probabilities
-
-# Grad-CAM visualization function
-def generate_grad_cam(image_tensor):
-    target_layer = model.features[-1]  # Last convolutional layer in EfficientNet-B0
-    cam = GradCAM(model=model, target_layer=target_layer)
-    
-    grayscale_cam = cam(image_tensor)
-    rgb_image = image_tensor.squeeze().permute(1, 2, 0).numpy()
-    rgb_image = (rgb_image * [0.229, 0.224, 0.225]) + [0.485, 0.456, 0.406]
-    rgb_image = np.clip(rgb_image, 0, 1)
-    
-    heatmap = cv2.applyColorMap(np.uint8(255 * grayscale_cam), cv2.COLORMAP_JET)
-    heatmap = np.float32(heatmap) / 255
-    cam_image = heatmap + rgb_image
-    cam_image /= np.max(cam_image)
-    
-    return np.uint8(255 * cam_image)
 
 # Streamlit UI setup
 st.title("🩺 OncoAI - Skin Lesion Classifier")
@@ -161,11 +106,6 @@ if img:
 
             for stage, prob in zip(class_names, probabilities):
                 st.write(f"{stage}: {prob * 100:.2f}%")
-            
-            # Grad-CAM visualization remains unchanged
-            
-            cam_image = generate_grad_cam(input_tensor)
-            st.image(cam_image, caption="Grad-CAM Visualization (Highlighting Key Areas)", use_column_width=True)
         
         except Exception as e:
             st.error(f"Error during prediction: {e}")
