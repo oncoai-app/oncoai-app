@@ -1,22 +1,20 @@
 import streamlit as st
 import torch
-import torch.nn as nn
 from torchvision import transforms, models
 from PIL import Image
 import requests
 import io
 import numpy as np
 import cv2
-import seaborn as sns
 
-# Set up Streamlit page configuration
+# Page configuration
 st.set_page_config(
     page_title="OncoAI - Skin Lesion Classifier",
     page_icon="🩺",
     layout="wide",
 )
 
-# Define dataset class names (20 classes)
+# Define class names (20 classes)
 class_names = [
     "Acne/Rosacea", "Actinic Keratosis/Basal Cell Carcinoma", "Atopic Dermatitis",
     "Bullous Disease", "Cellulitis/Impetigo", "Eczema", "Exanthems/Drug Eruptions",
@@ -28,7 +26,7 @@ class_names = [
     "Vascular Tumors", "Vasculitis", "Warts/Molluscum/Viral Infections"
 ]
 
-# Custom Grad-CAM implementation
+# Grad-CAM implementation
 class GradCAM:
     def __init__(self, model, target_layer):
         self.model = model
@@ -74,7 +72,7 @@ def load_model():
         # Load pretrained EfficientNet-B0 and modify classifier for 20 classes
         model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.DEFAULT)
         num_features = model.classifier[1].in_features
-        model.classifier[1] = nn.Linear(num_features, len(class_names))
+        model.classifier[1] = torch.nn.Linear(num_features, len(class_names))
 
         state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
         model.load_state_dict(state_dict, strict=True)
@@ -89,17 +87,13 @@ def load_model():
 model = load_model()
 
 # Preprocess image with advanced data augmentation
-def preprocess_image(image, apply_augmentation=False):
+def preprocess_image(image):
     transform_list = [
         transforms.Resize(256),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ]
-    
-    if apply_augmentation:
-        transform_list.insert(0, transforms.RandomHorizontalFlip())
-        transform_list.insert(1, transforms.RandomRotation(20))
     
     transform = transforms.Compose(transform_list)
     return transform(image).unsqueeze(0)
@@ -123,7 +117,8 @@ def generate_grad_cam(image_tensor):
     heatmap = cv2.applyColorMap(np.uint8(255 * grayscale_cam), cv2.COLORMAP_JET)
     heatmap = np.float32(heatmap) / 255
     cam_image = heatmap + rgb_image
-    cam_image = cam_image / np.max(cam_image)
+    cam_image /= np.max(cam_image)
+    
     return np.uint8(255 * cam_image)
 
 # Streamlit UI setup
@@ -148,10 +143,7 @@ if img:
     with st.spinner("Analyzing the image..."):
         st.image(img, caption="Selected Image", use_column_width=True)
 
-        # Option to apply data augmentation
-        apply_augmentation = st.checkbox("Apply Data Augmentation for Robust Analysis")
-        
-        input_tensor = preprocess_image(img, apply_augmentation=apply_augmentation)
+        input_tensor = preprocess_image(img)
         
         try:
             probabilities = predict(input_tensor)
@@ -163,19 +155,10 @@ if img:
             st.markdown(f"<h3 style='color:#3498db;'>Predicted Class: <strong>{prediction}</strong></h3>", unsafe_allow_html=True)
             
             st.markdown("<h3>Class Probabilities:</h3>", unsafe_allow_html=True)
-            
-            colors_palette = sns.color_palette("husl", len(class_names))
-            
-            for stage, prob, color in zip(class_names, probabilities, colors_palette):
-                st.write(f"<strong>{stage}:</strong> {prob * 100:.2f}%", unsafe_allow_html=True)
-                
-                progress_html = f"""
-                <div style="background-color: #e0e0e0; border-radius: 25px; width: 100%; height: 18px; margin-bottom: 10px;">
-                    <div style="background-color: rgb({int(color[0]*255)}, {int(color[1]*255)}, {int(color[2]*255)}); width: {prob * 100}%; height: 100%; border-radius: 25px;"></div>
-                </div>
-                """
-                st.markdown(progress_html, unsafe_allow_html=True)
 
+            for stage, prob in zip(class_names, probabilities):
+                st.write(f"{stage}: {prob * 100:.2f}%")
+            
             # Grad-CAM visualization remains unchanged
             
             cam_image = generate_grad_cam(input_tensor)
