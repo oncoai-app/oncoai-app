@@ -1,20 +1,34 @@
 import streamlit as st
 import torch
+import torch.nn as nn
 from torchvision import transforms, models
 from PIL import Image
 import requests
 import io
 import numpy as np
 import cv2
+import seaborn as sns
 
+# Set up Streamlit page configuration
 st.set_page_config(
-    page_title="OncoAI",
+    page_title="OncoAI - Skin Lesion Classifier",
     page_icon="🩺",
     layout="wide",
-    initial_sidebar_state="auto",
 )
 
-# Custom GradCAM implementation
+# Define dataset class names (20 classes)
+class_names = [
+    "Acne/Rosacea", "Actinic Keratosis/Basal Cell Carcinoma", "Atopic Dermatitis",
+    "Bullous Disease", "Cellulitis/Impetigo", "Eczema", "Exanthems/Drug Eruptions",
+    "Herpes/HPV/STDs", "Light Diseases/Pigmentation Disorders",
+    "Lupus/Connective Tissue Diseases", "Melanoma/Skin Cancer/Nevi/Moles",
+    "Poison Ivy/Contact Dermatitis", "Psoriasis/Lichen Planus",
+    "Seborrheic Keratosis/Benign Tumors", "Systemic Disease",
+    "Tinea/Ringworm/Candidiasis/Fungal Infections", "Urticaria Hives",
+    "Vascular Tumors", "Vasculitis", "Warts/Molluscum/Viral Infections"
+]
+
+# Custom Grad-CAM implementation
 class GradCAM:
     def __init__(self, model, target_layer):
         self.model = model
@@ -57,10 +71,10 @@ def load_model():
         response = requests.get(url)
         response.raise_for_status()
 
-        # Load pretrained EfficientNet-B0 and modify classifier
-        model = models.efficientnet_b0(pretrained=True)
+        # Load pretrained EfficientNet-B0 and modify classifier for 20 classes
+        model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.DEFAULT)
         num_features = model.classifier[1].in_features
-        model.classifier[1] = torch.nn.Linear(num_features, 2)
+        model.classifier[1] = nn.Linear(num_features, len(class_names))
 
         state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
         model.load_state_dict(state_dict, strict=True)
@@ -74,8 +88,8 @@ def load_model():
 
 model = load_model()
 
-# Preprocess image with optional data augmentation
-def preprocess_image_with_augmentation(image, apply_augmentation=False):
+# Preprocess image with advanced data augmentation
+def preprocess_image(image, apply_augmentation=False):
     transform_list = [
         transforms.Resize(256),
         transforms.CenterCrop(224),
@@ -85,7 +99,7 @@ def preprocess_image_with_augmentation(image, apply_augmentation=False):
     
     if apply_augmentation:
         transform_list.insert(0, transforms.RandomHorizontalFlip())
-        transform_list.insert(1, transforms.RandomRotation(15))
+        transform_list.insert(1, transforms.RandomRotation(20))
     
     transform = transforms.Compose(transform_list)
     return transform(image).unsqueeze(0)
@@ -96,7 +110,7 @@ def predict(image_tensor):
     probabilities = torch.nn.functional.softmax(outputs, dim=1).squeeze().tolist()
     return probabilities
 
-# Grad-CAM for visualization
+# Grad-CAM visualization function
 def generate_grad_cam(image_tensor):
     target_layer = model.features[-1]  # Last convolutional layer in EfficientNet-B0
     cam = GradCAM(model=model, target_layer=target_layer)
@@ -112,59 +126,60 @@ def generate_grad_cam(image_tensor):
     cam_image = cam_image / np.max(cam_image)
     return np.uint8(255 * cam_image)
 
-st.title("OncoAI")
-st.subheader("Detect Benign or Malignant Skin Lesions")
+# Streamlit UI setup
+st.title("🩺 OncoAI - Skin Lesion Classifier")
+st.subheader("Detect and Classify Skin Lesions Across 20 Categories")
 
 # Input method selection
-input_method = st.radio("Choose Input Method", ("Upload Image", "Capture from Camera"))
+input_method = st.radio("Choose Input Method:", ["Upload Image", "Capture from Camera"])
 
 img = None
 
 if input_method == "Upload Image":
-    uploaded_file = st.file_uploader("Upload Skin Lesion Image", type=["jpg", "png", "jpeg"])
+    uploaded_file = st.file_uploader("Upload a Skin Lesion Image:", type=["jpg", "png", "jpeg"])
     if uploaded_file:
         img = Image.open(uploaded_file).convert("RGB")
 elif input_method == "Capture from Camera":
-    camera_image = st.camera_input("Capture Skin Lesion Image")
+    camera_image = st.camera_input("Capture a Skin Lesion Image:")
     if camera_image:
         img = Image.open(camera_image).convert("RGB")
 
 if img:
-    with st.spinner("Analyzing..."):
+    with st.spinner("Analyzing the image..."):
         st.image(img, caption="Selected Image", use_column_width=True)
 
         # Option to apply data augmentation
-        apply_augmentation = st.checkbox("Apply Data Augmentation")
+        apply_augmentation = st.checkbox("Apply Data Augmentation for Robust Analysis")
         
-        input_tensor = preprocess_image_with_augmentation(img, apply_augmentation=apply_augmentation)
+        input_tensor = preprocess_image(img, apply_augmentation=apply_augmentation)
         
         try:
             probabilities = predict(input_tensor)
 
-            stages = ["Benign", "Malignant"]
             prediction_idx = np.argmax(probabilities)
-            prediction = stages[prediction_idx]
+            prediction = class_names[prediction_idx]
 
-            # Display predictions and probabilities
-            st.markdown(f"<h3>Predicted Class: {prediction}</h3>", unsafe_allow_html=True)
+            # Display predictions and probabilities with enhanced styling
+            st.markdown(f"<h3 style='color:#3498db;'>Predicted Class: <strong>{prediction}</strong></h3>", unsafe_allow_html=True)
             
-            st.markdown("<h3>Probabilities:</h3>", unsafe_allow_html=True)
+            st.markdown("<h3>Class Probabilities:</h3>", unsafe_allow_html=True)
             
-            colors = {"Benign": "#00ff00", "Malignant": "#ff0000"}
+            colors_palette = sns.color_palette("husl", len(class_names))
             
-            for stage, prob in zip(stages, probabilities):
-                st.write(f"<h4 style='font-size: 22px;'><strong>{stage}:</strong> {prob * 100:.2f}%</h4>", unsafe_allow_html=True)
+            for stage, prob, color in zip(class_names, probabilities, colors_palette):
+                st.write(f"<strong>{stage}:</strong> {prob * 100:.2f}%", unsafe_allow_html=True)
                 
                 progress_html = f"""
                 <div style="background-color: #e0e0e0; border-radius: 25px; width: 100%; height: 18px; margin-bottom: 10px;">
-                    <div style="background-color: {colors[stage]}; width: {prob * 100}%; height: 100%; border-radius: 25px;"></div>
+                    <div style="background-color: rgb({int(color[0]*255)}, {int(color[1]*255)}, {int(color[2]*255)}); width: {prob * 100}%; height: 100%; border-radius: 25px;"></div>
                 </div>
                 """
                 st.markdown(progress_html, unsafe_allow_html=True)
 
-            # Grad-CAM visualization
+            # Grad-CAM visualization remains unchanged
+            
             cam_image = generate_grad_cam(input_tensor)
-            st.image(cam_image, caption="Grad-CAM Visualization", use_column_width=True)
+            st.image(cam_image, caption="Grad-CAM Visualization (Highlighting Key Areas)", use_column_width=True)
         
         except Exception as e:
             st.error(f"Error during prediction: {e}")
