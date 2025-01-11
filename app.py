@@ -71,7 +71,11 @@ def predict(image_tensor):
 
 # Sidebar for Input Method Selection and Image Upload/Capture
 with st.sidebar:
-    st.header("Input Image")
+    st.image("https://via.placeholder.com/150x150.png?text=OncoAI", width=150)  # Replace with your logo URL if available
+    st.title("OncoAI")
+    st.markdown("### Skin Lesion Classifier")
+    st.markdown("Upload or capture an image of a skin lesion to classify it into one of 20 categories.")
+
     input_method = st.radio("Choose Input Method:", ["Upload Image", "Capture from Camera"])
 
     img = None
@@ -107,14 +111,27 @@ if img:
 
             prediction_idx = np.argmax(probabilities)
             prediction = class_names[prediction_idx]
+            confidence_score = probabilities[prediction_idx] * 100
 
-            # Display Predicted Class and Probabilities
+            # Display Predicted Class and Confidence Score
             st.markdown(f"<h3 style='color:#3498db;'>Predicted Class: <strong>{prediction}</strong></h3>", unsafe_allow_html=True)
-            
+            st.progress(confidence_score / 100)
+
+            # Display Probabilities with Progress Bars
             st.markdown("<h3>Class Probabilities:</h3>", unsafe_allow_html=True)
             for stage, prob in zip(class_names, probabilities):
-                st.write(f"{stage}: {prob * 100:.2f}%")
-        
+                st.markdown(f"<strong>{stage}:</strong> {prob * 100:.2f}%", unsafe_allow_html=True)
+                st.progress(prob)
+
+            # Additional Insights Section
+            st.markdown("<h3>Additional Insights:</h3>", unsafe_allow_html=True)
+            if prediction in ["Melanoma/Skin Cancer/Nevi/Moles", "Actinic Keratosis/Basal Cell Carcinoma"]:
+                st.warning(
+                    f"The AI detected signs of {prediction}. Please consult a dermatologist for further evaluation."
+                )
+            else:
+                st.success(f"The detected condition ({prediction}) may not be critical. However, consult a dermatologist if symptoms persist.")
+
         except Exception as e:
             st.error(f"Error during prediction: {e}")
 else:
