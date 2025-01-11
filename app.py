@@ -35,7 +35,7 @@ class GradCAM:
         self.activations = None
         
         self.target_layer.register_forward_hook(self.save_activation)
-        self.target_layer.register_backward_hook(self.save_gradient)
+        self.target_layer.register_full_backward_hook(self.save_gradient)
     
     def save_activation(self, module, input, output):
         self.activations = output.detach()
@@ -71,7 +71,9 @@ def load_model():
 
         # Load pretrained EfficientNet-B0 and modify classifier for 20 classes
         model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.DEFAULT)
-        num_features = model.classifier[1].in_features
+        
+        # Update classifier for 20 classes
+        num_features = model.classifier[1].in_features if isinstance(model.classifier[1], torch.nn.Linear) else model.classifier.in_features
         model.classifier[1] = torch.nn.Linear(num_features, len(class_names))
 
         state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
@@ -137,7 +139,8 @@ if input_method == "Upload Image":
 elif input_method == "Capture from Camera":
     camera_image = st.camera_input("Capture a Skin Lesion Image:")
     if camera_image:
-        img = Image.open(camera_image).convert("RGB")
+        img_data = camera_image.getvalue()
+        img = Image.open(io.BytesIO(img_data)).convert("RGB")
 
 if img:
     with st.spinner("Analyzing the image..."):
