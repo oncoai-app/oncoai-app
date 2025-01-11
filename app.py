@@ -11,6 +11,7 @@ st.set_page_config(
     page_title="OncoAI - Skin Lesion Classifier",
     page_icon="🩺",
     layout="wide",
+    initial_sidebar_state="expanded",
 )
 
 # Define class names (20 classes)
@@ -68,46 +69,53 @@ def predict(image_tensor):
     probabilities = torch.nn.functional.softmax(outputs, dim=1).squeeze().tolist()
     return probabilities
 
-# Streamlit UI setup
+# Sidebar for Input Method Selection and Image Upload/Capture
+with st.sidebar:
+    st.header("Input Image")
+    input_method = st.radio("Choose Input Method:", ["Upload Image", "Capture from Camera"])
+
+    img = None
+    if input_method == "Upload Image":
+        uploaded_file = st.file_uploader("Upload a Skin Lesion Image:", type=["jpg", "png", "jpeg"])
+        if uploaded_file:
+            try:
+                img = Image.open(uploaded_file).convert("RGB")
+            except Exception as e:
+                st.error(f"Invalid image file: {e}")
+    elif input_method == "Capture from Camera":
+        camera_image = st.camera_input("Capture a Skin Lesion Image:")
+        if camera_image:
+            try:
+                img_data = camera_image.getvalue()
+                img = Image.open(io.BytesIO(img_data)).convert("RGB")
+            except Exception as e:
+                st.error(f"Invalid camera input: {e}")
+
+# Main Content Area
 st.title("🩺 OncoAI - Skin Lesion Classifier")
 st.subheader("Detect and Classify Skin Lesions Across 20 Categories")
 
-# Input method selection
-input_method = st.radio("Choose Input Method:", ["Upload Image", "Capture from Camera"])
-
-img = None
-
-if input_method == "Upload Image":
-    uploaded_file = st.file_uploader("Upload a Skin Lesion Image:", type=["jpg", "png", "jpeg"])
-    if uploaded_file:
-        img = Image.open(uploaded_file).convert("RGB")
-elif input_method == "Capture from Camera":
-    camera_image = st.camera_input("Capture a Skin Lesion Image:")
-    if camera_image:
-        img_data = camera_image.getvalue()
-        img = Image.open(io.BytesIO(img_data)).convert("RGB")
-
 if img:
-    with st.spinner("Analyzing the image..."):
-        st.image(img, caption="Selected Image", use_column_width=True)
+    # Display Selected Image in Main Content Area
+    st.image(img, caption="Selected Image", use_column_width=True)
 
-        input_tensor = preprocess_image(img)
-        
+    # Analysis and Prediction Section
+    with st.spinner("Analyzing the image..."):
         try:
+            input_tensor = preprocess_image(img)
             probabilities = predict(input_tensor)
 
             prediction_idx = np.argmax(probabilities)
             prediction = class_names[prediction_idx]
 
-            # Display predictions and probabilities with enhanced styling
+            # Display Predicted Class and Probabilities
             st.markdown(f"<h3 style='color:#3498db;'>Predicted Class: <strong>{prediction}</strong></h3>", unsafe_allow_html=True)
             
             st.markdown("<h3>Class Probabilities:</h3>", unsafe_allow_html=True)
-
             for stage, prob in zip(class_names, probabilities):
                 st.write(f"{stage}: {prob * 100:.2f}%")
         
         except Exception as e:
             st.error(f"Error during prediction: {e}")
 else:
-    st.info("Please upload or capture a skin lesion image to proceed.")
+    st.info("Please upload or capture a skin lesion image from the sidebar to proceed.")
