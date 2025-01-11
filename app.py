@@ -53,7 +53,7 @@ class GradCAM:
 @st.cache_resource
 def load_model():
     try:
-        url = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/ss_model.pth"
+        url = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/20skin.pth"
         response = requests.get(url)
         response.raise_for_status()
 
