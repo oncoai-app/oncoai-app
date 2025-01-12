@@ -141,25 +141,65 @@ with st.sidebar:
 
 # Main Content Area for Analysis and Diagnosis
 st.title("🩺 OncoAI")
-st.subheader(f"Benign or Malignant? — Your Cancer Answer ")
-st.markdown(config["SUBTITLE"])
+st.subheader("Detect Benign or Malignant Masses")
+st.markdown("Upload or capture a mammogram image from the sidebar to analyze potential conditions.")
 
 # Model Loading Spinner
 with st.spinner("Loading AI Model..."):
-    model = load_model(MODEL_URL)
+    model = load_model()
 
 st.success("Model loaded successfully!")
 
 if images:
+    # Single image upload
+    if len(images) == 1:
+        image_name, img = images[0]
+        st.image(img, caption=f"Selected Image: {image_name}", use_column_width=True)
+
+        # Analysis and Prediction Section
+        with st.spinner(f"Analyzing {image_name}..."):
+            try:
+                # Preprocess image and get predictions
+                input_tensor = preprocess_image(img)
+                probabilities = predict(input_tensor, model)
+                prediction_idx = np.argmax(probabilities)
+                prediction = CATEGORIES[prediction_idx]
+                confidence_score = probabilities[prediction_idx] * 100
+
+                # Display detailed results for the single image
+                st.markdown(f"<h3 style='color: {COLORS[prediction]}'>Predicted Class: {prediction}</h3>", unsafe_allow_html=True)
+                st.markdown(f"<p>{CONDITION_DESCRIPTIONS[prediction]}</p>", unsafe_allow_html=True)
+                st.markdown(f"<strong>Confidence Score:</strong> {confidence_score:.2f}%", unsafe_allow_html=True)
+
+                # Display category probabilities with progress bars
+                st.markdown("<h3>Category Probabilities:</h3>", unsafe_allow_html=True)
+                for category, prob in zip(CATEGORIES, probabilities):
+                    st.markdown(f"<strong>{category}:</strong> {prob * 100:.2f}%", unsafe_allow_html=True)
+                    progress_html = f"""
+                    <div style="background-color: #e0e0e0; border-radius: 25px; width: 100%; height: 18px; margin-bottom: 10px;">
+                        <div style="background-color: {COLORS[category]}; width: {prob * 100}%; height: 100%; border-radius: 25px;"></div>
+                    </div>
+                    """
+                    st.markdown(progress_html, unsafe_allow_html=True)
+
+                # Additional insights or warnings based on prediction
+                if prediction != "Benign":
+                    st.warning(config["WARNING_MESSAGE"].format(prediction=prediction))
+                else:
+                    st.success("The analysis shows no concerning signs.")
+            except Exception as e:
+                st.error(f"Error during prediction for {image_name}: {e}")
+
     # Multiple image uploads
-    if len(images) > 1:
+    else:
         st.markdown("### Uploaded Images and Predictions")
         for image_name, img in images:
             col1, col2, col3 = st.columns([8, 1, 1])
-            
+
             # Show spinner while analyzing each image sequentially
             with st.spinner(f"Analyzing {image_name}..."):
                 try:
+                    # Preprocess image and get predictions
                     input_tensor = preprocess_image(img)
                     probabilities = predict(input_tensor, model)
                     prediction_idx = np.argmax(probabilities)
@@ -169,7 +209,7 @@ if images:
                     # Display results in columns
                     with col1:
                         st.markdown(
-                            f"**{image_name}**: <span style='color:{'#ff0000' if prediction == 'Malignant' else '#00ff00'}'>{prediction}</span> ({confidence_score:.2f}%)",
+                            f"**{image_name}**: <span style='color:{COLORS[prediction]}'>{prediction}</span> ({confidence_score:.2f}%)",
                             unsafe_allow_html=True,
                         )
                     with col2:
@@ -182,31 +222,6 @@ if images:
 
                 except Exception as e:
                     st.error(f"Error during prediction for {image_name}: {e}")
-    else:
-        # Single image upload
-        image_name, img = images[0]
-        st.image(img, caption=f"Selected Image: {image_name}", use_column_width=True)
 
-        # Analysis and Prediction Section
-        with st.spinner(f"Analyzing {image_name}..."):
-            try:
-                input_tensor = preprocess_image(img)
-                probabilities = predict(input_tensor, model)
-                prediction_idx = np.argmax(probabilities)
-                prediction = CATEGORIES[prediction_idx]
-                confidence_score = probabilities[prediction_idx] * 100
-        
-                # Display detailed results for a single image
-                st.markdown(f"<h3 style='color: {'#ff0000' if prediction == 'Malignant' else '#00ff00'}'>Predicted Class: {prediction}</h3>", unsafe_allow_html=True)
-                st.markdown(f"<p>{CONDITION_DESCRIPTIONS[prediction]}</p>", unsafe_allow_html=True)
-                st.markdown(f"<strong>Confidence Score:</strong> {confidence_score:.2f}%", unsafe_allow_html=True)
-        
-                # Additional insights or warnings based on prediction
-                if prediction != CATEGORIES[0]:
-                    st.warning(config["WARNING_MESSAGE"].format(prediction=prediction))
-                else:
-                    st.success("The analysis shows no concerning signs.")
-            except Exception as e:
-                st.error(f"Error during prediction for {image_name}: {e}")
 else:
-    st.info(config["INFO_MESSAGE"])
+    st.info("Please upload or capture a mammogram image from the sidebar to proceed.")
