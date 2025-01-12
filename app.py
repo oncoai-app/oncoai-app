@@ -139,17 +139,57 @@ if images:
                 st.markdown(f"<strong>Confidence Score:</strong> {confidence_score:.2f}%", unsafe_allow_html=True)
 
                 # Display category probabilities with progress bars
+                st.markdown("<h3>Category Probabilities:</h3>", unsafe_allow_html=True)
                 for category, prob in zip(CATEGORIES, probabilities):
+                    st.markdown(f"<strong>{category}:</strong> {prob * 100:.2f}%", unsafe_allow_html=True)
                     progress_html = f"""
                     <div style="background-color: #e0e0e0; border-radius: 25px; width: 100%; height: 18px; margin-bottom: 10px;">
                         <div style="background-color: {COLORS[category]}; width: {prob * 100}%; height: 100%; border-radius: 25px;"></div>
                     </div>
                     """
-                    st.markdown(f"<strong>{category}:</strong> {prob * 100:.2f}%", unsafe_allow_html=True)
                     st.markdown(progress_html, unsafe_allow_html=True)
 
+                    # Additional insights or warnings based on prediction
+                    if prediction != "Normal":
+                        st.warning(
+                            f"The AI detected signs of {prediction}. Please consult an ophthalmologist for further evaluation."
+                        )
+                    else:
+                        st.success("The eye appears healthy! No abnormalities detected.")
             except Exception as e:
-                st.error(f"Error during prediction for {image_name}: {e}")
+                    st.error(f"Error during prediction for {image_name}: {e}")
+    # Multiple image uploads
+    else:
+        for image_name, img in images:
+            col1, col2, col3 = st.columns([8, 1, 1])
+            
+            # Show spinner while analyzing each image sequentially
+            with st.spinner(f"Analyzing {image_name}..."):
+                try:
+                    input_tensor = preprocess_image(img)
+                    probabilities = predict(input_tensor, model)
+
+                    # Get prediction and confidence score for this image
+                    prediction_idx = np.argmax(probabilities)
+                    prediction = CATEGORIES[prediction_idx]
+                    confidence_score = probabilities[prediction_idx] * 100
+
+                    # Display results in columns
+                    with col1:
+                        st.markdown(
+                            f"**{image_name}**: <span style='color:{COLORS[prediction]}'>{prediction}</span> ({confidence_score:.2f}%)",
+                            unsafe_allow_html=True,
+                        )
+                    with col2:
+                        if st.button("View", key=f"view_btn_{image_name}"):
+                            st.session_state.current_view = (image_name, img)
+                    with col3:
+                        if st.button("✕", key=f"close_btn_{image_name}"):
+                            if st.session_state.current_view and st.session_state.current_view[0] == image_name:
+                                st.session_state.current_view = None
+
+                except Exception as e:
+                    st.error(f"Error during prediction for {image_name}: {e}")
 
 else:
     st.info("Please upload or capture a skin lesion image from the sidebar to proceed.")
