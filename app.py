@@ -67,6 +67,12 @@ if 'current_view' not in st.session_state:
 
 # Sidebar for Input Method Selection and Image Upload/Capture
 with st.sidebar:
+    # Add a dropdown for selecting cancer type (Breast Cancer or Skin Cancer)
+    cancer_type = st.selectbox(
+        "Select Cancer Type",
+        ("Breast Cancer", "Skin Cancer")
+    )
+    
     st.header("Input Image")
 
     # Display currently viewed image at the top of the sidebar
