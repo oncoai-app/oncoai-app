@@ -44,6 +44,12 @@ DISEASE_CONFIGS = {
     }
 }
 
+# Define COLORS for predictions
+COLORS = {
+    "Benign": "#4CAF50",  # Green
+    "Malignant": "#F44336",  # Red
+}
+
 # Sidebar for disease selection
 with st.sidebar:
     st.header("Select Disease")
