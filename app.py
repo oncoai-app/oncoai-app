@@ -151,8 +151,39 @@ with st.spinner("Loading AI Model..."):
 st.success("Model loaded successfully!")
 
 if images:
-    # Single image upload
-    if len(images) == 1:
+    # Multiple image uploads
+    if len(images) > 1:
+        st.markdown("### Uploaded Images and Predictions")
+        for image_name, img in images:
+            col1, col2, col3 = st.columns([8, 1, 1])
+            
+            # Show spinner while analyzing each image sequentially
+            with st.spinner(f"Analyzing {image_name}..."):
+                try:
+                    input_tensor = preprocess_image(img)
+                    probabilities = predict(input_tensor, model)
+                    prediction_idx = np.argmax(probabilities)
+                    prediction = CATEGORIES[prediction_idx]
+                    confidence_score = probabilities[prediction_idx] * 100
+
+                    # Display results in columns
+                    with col1:
+                        st.markdown(
+                            f"**{image_name}**: <span style='color:{'#ff0000' if prediction == 'Malignant' else '#00ff00'}'>{prediction}</span> ({confidence_score:.2f}%)",
+                            unsafe_allow_html=True,
+                        )
+                    with col2:
+                        if st.button("View", key=f"view_btn_{image_name}"):
+                            st.session_state.current_view = (image_name, img)
+                    with col3:
+                        if st.button("✕", key=f"close_btn_{image_name}"):
+                            if st.session_state.current_view and st.session_state.current_view[0] == image_name:
+                                st.session_state.current_view = None
+
+                except Exception as e:
+                    st.error(f"Error during prediction for {image_name}: {e}")
+    else:
+        # Single image upload
         image_name, img = images[0]
         st.image(img, caption=f"Selected Image: {image_name}", use_column_width=True)
 
@@ -170,7 +201,7 @@ if images:
                 st.markdown(f"<p>{CONDITION_DESCRIPTIONS[prediction]}</p>", unsafe_allow_html=True)
                 st.markdown(f"<strong>Confidence Score:</strong> {confidence_score:.2f}%", unsafe_allow_html=True)
         
-                # Additional insights or warnings based on prediction after both progress bars
+                # Additional insights or warnings based on prediction
                 if prediction != CATEGORIES[0]:
                     st.warning(config["WARNING_MESSAGE"].format(prediction=prediction))
                 else:
