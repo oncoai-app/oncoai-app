@@ -152,10 +152,10 @@ if images:
                     # Additional insights or warnings based on prediction
                     if prediction != "Normal":
                         st.warning(
-                            f"The AI detected signs of {prediction}. Please consult an ophthalmologist for further evaluation."
+                            f"The AI detected signs of {prediction} growth. Please consult a dermatologist for further evaluation."
                         )
                     else:
-                        st.success("The eye appears healthy! No abnormalities detected.")
+                        st.success("The skine appears healthy! No abnormalities detected.")
             except Exception as e:
                     st.error(f"Error during prediction for {image_name}: {e}")
     # Multiple image uploads
