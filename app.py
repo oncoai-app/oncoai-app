@@ -14,7 +14,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Constants
+# Constants for Skin Lesion Detection
 MODEL_URL = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/ss_model.pth"
 CATEGORIES = ["Benign", "Malignant"]
 CONDITION_DESCRIPTIONS = {
@@ -58,24 +58,52 @@ def predict(image_tensor, model):
     probabilities = torch.nn.functional.softmax(outputs, dim=1).squeeze().tolist()
     return probabilities
 
+# Initialize session state for file uploader key and current view
+if "uploader_key" not in st.session_state:
+    st.session_state.uploader_key = 0
+
+if 'current_view' not in st.session_state:
+    st.session_state.current_view = None
+
 # Sidebar for Input Method Selection and Image Upload/Capture
 with st.sidebar:
     st.header("Input Image")
+
+    # Display currently viewed image at the top of the sidebar
+    if st.session_state.current_view:
+        st.image(st.session_state.current_view[1], caption=st.session_state.current_view[0], use_column_width=True)
+        st.markdown("---")
+
+    # Clear Data Button
+    if st.button("Clear Data"):
+        st.session_state.uploader_key += 1  # Increment key to reset file uploader
+        st.session_state.current_view = None
+        st.experimental_rerun()  # Reload app to apply changes
+
+    # Input Method Selection
     input_method = st.radio("Choose Input Method", ("Upload Image", "Capture from Camera"))
 
-    img = None
+    images = []
     if input_method == "Upload Image":
-        uploaded_file = st.file_uploader("Upload Skin Lesion Image", type=["jpg", "png", "jpeg"])
-        if uploaded_file:
-            try:
-                img = Image.open(uploaded_file).convert("RGB")
-            except Exception as e:
-                st.error(f"Invalid image file: {e}")
+        uploaded_files = st.file_uploader(
+            "Upload Skin Lesion Image(s)",
+            type=["jpg", "png", "jpeg"],
+            accept_multiple_files=True,
+            key=f"uploader_{st.session_state.uploader_key}"
+        )
+        if uploaded_files:
+            for uploaded_file in uploaded_files:
+                try:
+                    img = Image.open(uploaded_file).convert("RGB")
+                    images.append((uploaded_file.name, img))
+                except Exception as e:
+                    st.error(f"Invalid image file: {e}")
     elif input_method == "Capture from Camera":
         camera_image = st.camera_input("Capture Skin Lesion Image")
         if camera_image:
             try:
                 img = Image.open(camera_image).convert("RGB")
+                images.append(("Captured Image", img))
             except Exception as e:
                 st.error(f"Invalid camera input: {e}")
 
@@ -90,46 +118,69 @@ with st.spinner("Loading AI Model..."):
 
 st.success("Model loaded successfully!")
 
-if img:
-    # Display Selected Image in Main Content Area
-    st.image(img, caption="Selected Image", use_column_width=True)
+if images:
+    # Single image upload
+    if len(images) == 1:
+        image_name, img = images[0]
+        st.image(img, caption=f"Selected Image: {image_name}", use_column_width=True)
 
-    # Analysis and Prediction Section
-    with st.spinner("Analyzing..."):
-        try:
-            input_tensor = preprocess_image(img)
-            probabilities = predict(input_tensor, model)
+        # Analysis and Prediction Section
+        with st.spinner(f"Analyzing {image_name}..."):
+            try:
+                input_tensor = preprocess_image(img)
+                probabilities = predict(input_tensor, model)
+                prediction_idx = np.argmax(probabilities)
+                prediction = CATEGORIES[prediction_idx]
+                confidence_score = probabilities[prediction_idx] * 100
 
-            # Display Predicted Category and Description
-            prediction_idx = np.argmax(probabilities)
-            prediction = CATEGORIES[prediction_idx]
-            confidence_score = probabilities[prediction_idx] * 100
+                # Display detailed results for a single image
+                st.markdown(f"<h3 style='color: {COLORS[prediction]}'>Predicted Class: {prediction}</h3>", unsafe_allow_html=True)
+                st.markdown(f"<p>{CONDITION_DESCRIPTIONS[prediction]}</p>", unsafe_allow_html=True)
+                st.markdown(f"<strong>Confidence Score:</strong> {confidence_score:.2f}%", unsafe_allow_html=True)
 
-            st.markdown(f"<h3 style='color: {COLORS[prediction]}'>Predicted Class: {prediction}</h3>", unsafe_allow_html=True)
-            st.markdown(f"<p>{CONDITION_DESCRIPTIONS[prediction]}</p>", unsafe_allow_html=True)
-            st.markdown(f"<strong>Confidence Score:</strong> {confidence_score:.2f}%", unsafe_allow_html=True)
+                # Display category probabilities with progress bars
+                for category, prob in zip(CATEGORIES, probabilities):
+                    progress_html = f"""
+                    <div style="background-color: #e0e0e0; border-radius: 25px; width: 100%; height: 18px; margin-bottom: 10px;">
+                        <div style="background-color: {COLORS[category]}; width: {prob * 100}%; height: 100%; border-radius: 25px;"></div>
+                    </div>
+                    """
+                    st.markdown(f"<strong>{category}:</strong> {prob * 100:.2f}%", unsafe_allow_html=True)
+                    st.markdown(progress_html, unsafe_allow_html=True)
 
-            # Display Probabilities with Progress Bars and Colors
-            st.markdown("<h3>Category Probabilities:</h3>", unsafe_allow_html=True)
-            for category, prob in zip(CATEGORIES, probabilities):
-                st.markdown(f"<strong>{category}:</strong> {prob * 100:.2f}%", unsafe_allow_html=True)
-                progress_html = f"""
-                <div style="background-color: #e0e0e0; border-radius: 25px; width: 100%; height: 18px; margin-bottom: 10px;">
-                    <div style="background-color: {COLORS[category]}; width: {prob * 100}%; height: 100%; border-radius: 25px;"></div>
-                </div>
-                """
-                st.markdown(progress_html, unsafe_allow_html=True)
+            except Exception as e:
+                st.error(f"Error during prediction for {image_name}: {e}")
 
-            # Additional Insights Section
-            st.markdown("<h3>Additional Insights:</h3>", unsafe_allow_html=True)
-            if prediction == "Malignant":
-                st.warning(
-                    "The AI detected signs of malignancy. Please consult a dermatologist or oncologist immediately for further evaluation."
-                )
-            else:
-                st.success("The lesion appears benign. However, regular monitoring is recommended.")
+    # Multiple image uploads
+    else:
+        for image_name, img in images:
+            col1, col2, col3 = st.columns([8, 1, 1])
 
-        except Exception as e:
-            st.error(f"Error during prediction: {e}")
+            with col1:
+                with st.spinner(f"Analyzing {image_name}..."):
+                    try:
+                        input_tensor = preprocess_image(img)
+                        probabilities = predict(input_tensor, model)
+
+                        prediction_idx = np.argmax(probabilities)
+                        prediction = CATEGORIES[prediction_idx]
+                        confidence_score = probabilities[prediction_idx] * 100
+
+                        # Display results inline with options to view or remove the image
+                        col1.markdown(
+                            f"**{image_name}**: <span style='color:{COLORS[prediction]}'>{prediction}</span> ({confidence_score:.2f}%)",
+                            unsafe_allow_html=True,
+                        )
+                        if col2.button("View", key=f"view_btn_{image_name}"):
+                            st.session_state.current_view = (image_name, img)
+                        if col3.button("✕", key=f"close_btn_{image_name}"):
+                            if (
+                                st.session_state.current_view 
+                                and st.session_state.current_view[0] == image_name):
+                                st.session_state.current_view=None
+
+                    except Exception as e:
+                        col1.error(f"Error analyzing {image_name}: {e}")
+
 else:
     st.info("Please upload or capture a skin lesion image from the sidebar to proceed.")
