@@ -15,11 +15,11 @@ st.set_page_config(
 )
 
 # Constants for Skin Lesion Detection
-MODEL_URL = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/ss_model.pth"
+MODEL_URL = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/bc_mammogram.pth"
 CATEGORIES = ["Benign", "Malignant"]
 CONDITION_DESCRIPTIONS = {
-    "Benign": "The lesion appears non-cancerous and typically does not pose a threat to health.",
-    "Malignant": "The lesion may be cancerous and requires immediate medical attention."
+    "Benign": "The lesion appears non-cancerous and is unlikely to pose a threat to health, but may require routine monitoring.",
+    "Malignant": "The lesion may be cancerous and requires immediate medical evaluation and further testing."
 }
 COLORS = {"Benign": "#00ff00", "Malignant": "#ff0000"}
 
@@ -86,7 +86,7 @@ with st.sidebar:
     images = []
     if input_method == "Upload Image":
         uploaded_files = st.file_uploader(
-            "Upload Skin Lesion Image(s)",
+            "Upload Mammogram(s)",
             type=["jpg", "png", "jpeg"],
             accept_multiple_files=True,
             key=f"uploader_{st.session_state.uploader_key}"
@@ -109,8 +109,8 @@ with st.sidebar:
 
 # Main Content Area for Analysis and Diagnosis
 st.title("🩺 OncoAI")
-st.subheader("Detect Benign or Malignant Skin Lesions")
-st.markdown("Upload or capture a skin lesion image from the sidebar to analyze potential conditions.")
+st.subheader("Detect Benign or Malignant Masses")
+st.markdown("Upload or capture a mammogram image from the sidebar to analyze potential conditions.")
 
 # Model Loading Spinner
 with st.spinner("Loading AI Model..."):
@@ -152,7 +152,7 @@ if images:
                 # Additional insights or warnings based on prediction after both progress bars
                 if prediction != "Benign":
                     st.warning(
-                        f"The AI detected signs of {prediction} growth. Please consult a dermatologist for further evaluation."
+                        f"The AI detected signs of {prediction} growth. Please consult an oncologist for further evaluation."
                     )
                 else:
                     st.success("The skin appears healthy! No abnormalities detected.")
@@ -192,4 +192,4 @@ if images:
                     st.error(f"Error during prediction for {image_name}: {e}")
 
 else:
-    st.info("Please upload or capture a skin lesion image from the sidebar to proceed.")
+    st.info("Please upload or capture a mammogram image from the sidebar to proceed.")
