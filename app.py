@@ -146,7 +146,7 @@ st.markdown("Upload or capture a mammogram image from the sidebar to analyze pot
 
 # Model Loading Spinner
 with st.spinner("Loading AI Model..."):
-    model = load_model()
+    model = load_model(MODEL_URL)
 
 st.success("Model loaded successfully!")
 
