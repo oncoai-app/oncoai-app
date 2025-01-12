@@ -70,7 +70,7 @@ def preprocess_image(image):
 @st.cache_resource(show_spinner=False)
 def load_model(model_url):
     try:
-        response = requests.get(model_url)
+        response = requests.get(MODEL_URL)
         response.raise_for_status()
         model = models.efficientnet_b0(pretrained=True)
         num_features = model.classifier[1].in_features
