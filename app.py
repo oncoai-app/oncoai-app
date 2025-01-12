@@ -151,36 +151,5 @@ if images:
             except Exception as e:
                 st.error(f"Error during prediction for {image_name}: {e}")
 
-    # Multiple image uploads
-    else:
-        for image_name, img in images:
-            col1, col2, col3 = st.columns([8, 1, 1])
-
-            with col1:
-                with st.spinner(f"Analyzing {image_name}..."):
-                    try:
-                        input_tensor = preprocess_image(img)
-                        probabilities = predict(input_tensor, model)
-
-                        prediction_idx = np.argmax(probabilities)
-                        prediction = CATEGORIES[prediction_idx]
-                        confidence_score = probabilities[prediction_idx] * 100
-
-                        # Display results inline with options to view or remove the image
-                        col1.markdown(
-                            f"**{image_name}**: <span style='color:{COLORS[prediction]}'>{prediction}</span> ({confidence_score:.2f}%)",
-                            unsafe_allow_html=True,
-                        )
-                        if col2.button("View", key=f"view_btn_{image_name}"):
-                            st.session_state.current_view = (image_name, img)
-                        if col3.button("✕", key=f"close_btn_{image_name}"):
-                            if (
-                                st.session_state.current_view 
-                                and st.session_state.current_view[0] == image_name):
-                                st.session_state.current_view=None
-
-                    except Exception as e:
-                        col1.error(f"Error analyzing {image_name}: {e}")
-
 else:
     st.info("Please upload or capture a skin lesion image from the sidebar to proceed.")
