@@ -148,7 +148,7 @@ with st.sidebar:
 # Main Content Area for Analysis and Diagnosis
 st.title("🩺 OncoAI")
 st.subheader("Detect Benign or Malignant Masses")
-st.markdown("Upload or capture a mammogram image from the sidebar to analyze potential conditions.")
+st.markdown(["SUBTITLE"])
 
 # Model Loading Spinner
 with st.spinner("Loading AI Model..."):
@@ -234,4 +234,4 @@ if images:
                     st.error(f"Error during prediction for {image_name}: {e}")
 
 else:
-    st.info("Please upload or capture a mammogram image from the sidebar to proceed.")
+    st.info(["INFO_MESSAGE"])
