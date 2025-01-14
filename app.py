@@ -148,7 +148,9 @@ with st.sidebar:
 # Main Content Area for Analysis and Diagnosis
 st.title("🩺 OncoAI")
 st.subheader("Detect Benign or Malignant Masses")
-st.markdown(f"<p>{SUBTITLE}</p>")
+
+# Dynamically set subtitle and info message based on selected disease
+st.markdown(f"<p>{config['SUBTITLE']}</p>", unsafe_allow_html=True)
 
 # Model Loading Spinner
 with st.spinner("Loading AI Model..."):
@@ -234,4 +236,5 @@ if images:
                     st.error(f"Error during prediction for {image_name}: {e}")
 
 else:
-    st.info(["INFO_MESSAGE"])
+    # Display the info message dynamically
+    st.info(config["INFO_MESSAGE"])
