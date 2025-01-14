@@ -148,7 +148,7 @@ with st.sidebar:
 # Main Content Area for Analysis and Diagnosis
 st.title("🩺 OncoAI")
 st.subheader("Detect Benign or Malignant Masses")
-st.markdown(["SUBTITLE"])
+st.markdown(f"<p>{SUBTITLE}</p>")
 
 # Model Loading Spinner
 with st.spinner("Loading AI Model..."):
