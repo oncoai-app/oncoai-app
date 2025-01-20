@@ -65,7 +65,7 @@ DISEASE_CONFIGS = {
             "Malignant": "The lesion may be cancerous and requires immediate medical evaluation and further testing."
         },
         "UPLOAD_TITLE": "Upload CT Scan(s)",
-        "CAMERA_TITLE": "Capture CT",
+        "CAMERA_TITLE": "Capture CT Scan",
         "SUBTITLE": "Upload or capture a CT scan from the sidebar to analyze potential conditions.",
         "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an oncologist for further evaluation.",
         "INFO_MESSAGE": "Please upload or capture a CT scan from the sidebar to proceed."
