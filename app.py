@@ -16,6 +16,21 @@ st.set_page_config(
 
 # Disease configurations
 DISEASE_CONFIGS = {
+    "Brain Cancer": {
+        "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/20250119_brain_mri_e30.pth",  # Updated Brain MRI model URL
+        "CATEGORIES": ["Glioma", "Meningioma", "Normal", "Pituitary Tumor"],
+        "CONDITION_DESCRIPTIONS": {
+            "Glioma": "A malignant tumor that starts in the brain or spine, requiring urgent treatment and care.",
+            "Meningioma": "A tumor that forms on the membranes covering the brain and spinal cord, often benign.",
+            "Normal": "The MRI scan appears normal, and no abnormalities have been detected.",
+            "Pituitary Tumor": "A tumor located in the pituitary gland, which may affect hormone levels, requires medical attention."
+        },
+        "UPLOAD_TITLE": "Upload MRI Image(s)",
+        "CAMERA_TITLE": "Capture MRI Image",
+        "SUBTITLE": "Upload or capture an MRI image from the sidebar to analyze potential conditions.",
+        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult a neurologist for further evaluation.",
+        "INFO_MESSAGE": "Please upload or capture an MRI image from the sidebar to proceed."
+    },
     "Skin Cancer": {
         "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/ss_model.pth",
         "CATEGORIES": ["Benign", "Malignant"],
@@ -41,21 +56,6 @@ DISEASE_CONFIGS = {
         "SUBTITLE": "Upload or capture a mammogram image from the sidebar to analyze potential conditions.",
         "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an oncologist for further evaluation.",
         "INFO_MESSAGE": "Please upload or capture a mammogram image from the sidebar to proceed."
-    },
-    "Brain Cancer": {
-        "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/20250119_brain_mri_e30.pth",  # Updated Brain MRI model URL
-        "CATEGORIES": ["Glioma", "Meningioma", "Normal", "Pituitary Tumor"],
-        "CONDITION_DESCRIPTIONS": {
-            "Glioma": "A malignant tumor that starts in the brain or spine, requiring urgent treatment and care.",
-            "Meningioma": "A tumor that forms on the membranes covering the brain and spinal cord, often benign.",
-            "Normal": "The MRI scan appears normal, and no abnormalities have been detected.",
-            "Pituitary Tumor": "A tumor located in the pituitary gland, which may affect hormone levels, requires medical attention."
-        },
-        "UPLOAD_TITLE": "Upload MRI Image(s)",
-        "CAMERA_TITLE": "Capture MRI Image",
-        "SUBTITLE": "Upload or capture an MRI image from the sidebar to analyze potential conditions.",
-        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult a neurologist for further evaluation.",
-        "INFO_MESSAGE": "Please upload or capture an MRI image from the sidebar to proceed."
     }
 }
 
