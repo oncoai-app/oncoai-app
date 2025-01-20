@@ -41,6 +41,21 @@ DISEASE_CONFIGS = {
         "SUBTITLE": "Upload or capture a mammogram image from the sidebar to analyze potential conditions.",
         "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an oncologist for further evaluation.",
         "INFO_MESSAGE": "Please upload or capture a mammogram image from the sidebar to proceed."
+    },
+    "Brain Cancer": {
+        "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/20250119_brain_mri_e30.pth",  # Updated Brain MRI model URL
+        "CATEGORIES": ["Glioma", "Meningioma", "Normal", "Pituitary Tumor"],
+        "CONDITION_DESCRIPTIONS": {
+            "Glioma": "A malignant tumor that starts in the brain or spine, requiring urgent treatment and care.",
+            "Meningioma": "A tumor that forms on the membranes covering the brain and spinal cord, often benign.",
+            "Normal": "The MRI scan appears normal, and no abnormalities have been detected.",
+            "Pituitary Tumor": "A tumor located in the pituitary gland, which may affect hormone levels, requires medical attention."
+        },
+        "UPLOAD_TITLE": "Upload MRI Image(s)",
+        "CAMERA_TITLE": "Capture MRI Image",
+        "SUBTITLE": "Upload or capture an MRI image from the sidebar to analyze potential conditions.",
+        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult a neurologist for further evaluation.",
+        "INFO_MESSAGE": "Please upload or capture an MRI image from the sidebar to proceed."
     }
 }
 
@@ -48,6 +63,10 @@ DISEASE_CONFIGS = {
 COLORS = {
     "Benign": "#4CAF50",  # Green
     "Malignant": "#F44336",  # Red
+    "Glioma": "#FF5722",  # Orange
+    "Meningioma": "#2196F3",  # Blue
+    "Normal": "#4CAF50",  # Green
+    "Pituitary Tumor": "#FFEB3B",  # Yellow
 }
 
 # Sidebar for disease selection
@@ -125,7 +144,7 @@ with st.sidebar:
     if input_method == "Upload Image":
         uploaded_files = st.file_uploader(
             config["UPLOAD_TITLE"],
-            type=["jpg", "png", "jpeg"],
+            type=["jpg", "png", "jpeg", "dcm", "nii", "gz"],  # Add MRI file types if necessary
             accept_multiple_files=True,
             key=f"uploader_{st.session_state.uploader_key}"
         )
@@ -189,13 +208,13 @@ if images:
                     """
                     st.markdown(progress_html, unsafe_allow_html=True)
 
-                # Additional insights or warnings based on prediction after both progress bars
-                if prediction != "Benign":
+                # Additional insights or warnings based on prediction
+                if prediction != "Normal":
                     st.warning(
-                        f"The AI detected signs of {prediction} growth. Please consult an oncologist for further evaluation."
+                        f"The AI detected signs of {prediction} growth. Please consult a neurologist for further evaluation."
                     )
                 else:
-                    st.success("The skin appears healthy! No abnormalities detected.")
+                    st.success("The MRI scan appears normal. No abnormalities detected.")
             except Exception as e:
                 st.error(f"Error during prediction for {image_name}: {e}")
 
