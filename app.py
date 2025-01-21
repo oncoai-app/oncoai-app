@@ -69,6 +69,19 @@ DISEASE_CONFIGS = {
         "SUBTITLE": "Upload or capture a CT scan from the sidebar to analyze potential conditions.",
         "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an oncologist for further evaluation.",
         "INFO_MESSAGE": "Please upload or capture a CT scan from the sidebar to proceed."
+    },
+    "Colon Cancer": {
+        "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/20250121_colon_lc25000_b0_e30.pth",
+        "CATEGORIES": ["Benign", "Malignant"],
+        "CONDITION_DESCRIPTIONS": {
+            "Benign": "The lesion appears non-cancerous and is unlikely to pose a threat to health, but may require routine monitoring.",
+            "Malignant": "The lesion may be cancerous and requires immediate medical evaluation and further testing."
+        },
+        "UPLOAD_TITLE": "Upload Pathology Slide(s)",
+        "CAMERA_TITLE": "Capture Pathology Slide Image",
+        "SUBTITLE": "Upload or capture a pathology slide image from the sidebar to analyze potential conditions.",
+        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an pathologist for further evaluation.",
+        "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed."
     }
 }
 
