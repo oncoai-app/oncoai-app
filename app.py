@@ -45,17 +45,17 @@ DISEASE_CONFIGS = {
         "INFO_MESSAGE": "Please upload or capture a skin lesion image from the sidebar to proceed."
     },
     "Breast Cancer": {
-        "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/bc_mammogram.pth",
+        "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/20250120_breast_breakhis_b0_e30.pth",
         "CATEGORIES": ["Benign", "Malignant"],
         "CONDITION_DESCRIPTIONS": {
             "Benign": "The lesion appears non-cancerous and is unlikely to pose a threat to health, but may require routine monitoring.",
             "Malignant": "The lesion may be cancerous and requires immediate medical evaluation and further testing."
         },
-        "UPLOAD_TITLE": "Upload Mammogram(s)",
-        "CAMERA_TITLE": "Capture Mammogram Image",
-        "SUBTITLE": "Upload or capture a mammogram image from the sidebar to analyze potential conditions.",
-        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an oncologist for further evaluation.",
-        "INFO_MESSAGE": "Please upload or capture a mammogram image from the sidebar to proceed."
+        "UPLOAD_TITLE": "Upload Pathology Slide(s)",
+        "CAMERA_TITLE": "Capture Pathology Slide Image",
+        "SUBTITLE": "Upload or capture a pathology slide image from the sidebar to analyze potential conditions.",
+        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an pathologist for further evaluation.",
+        "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed."
     },
     "Lung Cancer": {
         "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/20250120_lung_iqoth_b0_e30.pth",
