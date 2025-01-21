@@ -28,8 +28,9 @@ DISEASE_CONFIGS = {
         "UPLOAD_TITLE": "Upload MRI Image(s)",
         "CAMERA_TITLE": "Capture MRI Image",
         "SUBTITLE": "Upload or capture an MRI image from the sidebar to analyze potential conditions.",
-        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult a neurologist for further evaluation.",
-        "INFO_MESSAGE": "Please upload or capture an MRI image from the sidebar to proceed."
+        "WARNING_MESSAGE": "The AI detected signs of {prediction}. Please consult a neurologist for further evaluation.",
+        "INFO_MESSAGE": "Please upload or capture an MRI image from the sidebar to proceed.",
+        "SUCCESS_MESSAGE": "The MRI scan appears normal. No abnormalities detected."
     },
     "Skin Cancer": {
         "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/ss_model.pth",
@@ -42,7 +43,8 @@ DISEASE_CONFIGS = {
         "CAMERA_TITLE": "Capture Skin Lesion Image",
         "SUBTITLE": "Upload or capture a skin lesion image from the sidebar to analyze potential conditions.",
         "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult a dermatologist for further evaluation.",
-        "INFO_MESSAGE": "Please upload or capture a skin lesion image from the sidebar to proceed."
+        "INFO_MESSAGE": "Please upload or capture a skin lesion image from the sidebar to proceed.",
+        "SUCCESS_MESSAGE": "The skin lesion appears non-cancerous. No immediate concern."
     },
     "Breast Cancer": {
         "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/20250120_breast_breakhis_b0_e30.pth",
@@ -55,7 +57,8 @@ DISEASE_CONFIGS = {
         "CAMERA_TITLE": "Capture Pathology Slide Image",
         "SUBTITLE": "Upload or capture a pathology slide image from the sidebar to analyze potential conditions.",
         "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an pathologist for further evaluation.",
-        "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed."
+        "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed.",
+        "SUCCESS_MESSAGE": "The image shows no signs of cancer. There is no immediate concern."
     },
     "Lung Cancer": {
         "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/20250120_lung_iqoth_b0_e30.pth",
@@ -68,7 +71,8 @@ DISEASE_CONFIGS = {
         "CAMERA_TITLE": "Capture CT Scan",
         "SUBTITLE": "Upload or capture a CT scan from the sidebar to analyze potential conditions.",
         "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an oncologist for further evaluation.",
-        "INFO_MESSAGE": "Please upload or capture a CT scan from the sidebar to proceed."
+        "INFO_MESSAGE": "Please upload or capture a CT scan from the sidebar to proceed.",
+        "SUCCESS_MESSAGE": "The image shows no signs of cancer. There is no immediate concern."
     },
     "Colon Cancer": {
         "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/20250121_colon_lc25000_b0_e30.pth",
@@ -81,7 +85,8 @@ DISEASE_CONFIGS = {
         "CAMERA_TITLE": "Capture Pathology Slide Image",
         "SUBTITLE": "Upload or capture a pathology slide image from the sidebar to analyze potential conditions.",
         "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an pathologist for further evaluation.",
-        "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed."
+        "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed.",
+        "SUCCESS_MESSAGE": "The image shows no signs of cancer. There is no immediate concern."
     },
     "Osteosarcoma": {
         "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/20250121_osteo_sarcoma_b0_e30.pth",
@@ -95,7 +100,8 @@ DISEASE_CONFIGS = {
         "CAMERA_TITLE": "Capture Pathology Slide Image",
         "SUBTITLE": "Upload or capture a pathology slide image from the sidebar to analyze potential conditions.",
         "WARNING_MESSAGE": "The AI detected signs of a {prediction}. Please consult an oncologist or pathologist for further evaluation.",
-        "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed."
+        "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed.",
+        "SUCCESS_MESSAGE": "There appears to be no tumor present in the pathology slide presented."
     }
 }
 
@@ -123,6 +129,8 @@ config = DISEASE_CONFIGS[selected_disease]
 MODEL_URL = config["MODEL_URL"]
 CATEGORIES = config["CATEGORIES"]
 CONDITION_DESCRIPTIONS = config["CONDITION_DESCRIPTIONS"]
+SUCCESS_MESSAGE = config["SUCCESS_MESSAGE"]
+WARNING_MESSAGE = config["WARNING_MESSAGE"]
 
 # Preprocess image with caching
 @st.cache_data(show_spinner=False)
@@ -253,12 +261,11 @@ if images:
                     st.markdown(progress_html, unsafe_allow_html=True)
 
                 # Additional insights or warnings based on prediction
-                if prediction != "Normal":
-                    st.warning(
-                        f"The AI detected signs of {prediction} growth. Please consult a neurologist for further evaluation."
-                    )
+                if prediction not in ["Normal", "Benign", "Non-Tumor"]:
+                    st.warning(WARNING_MESSAGE.format(prediction=prediction))
                 else:
-                    st.success("The MRI scan appears normal. No abnormalities detected.")
+                    st.success(SUCCESS_MESSAGE)
+
             except Exception as e:
                 st.error(f"Error during prediction for {image_name}: {e}")
 
