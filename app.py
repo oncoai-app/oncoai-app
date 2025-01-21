@@ -107,6 +107,9 @@ COLORS = {
     "Meningioma": "#2196F3",  # Blue
     "Normal": "#4CAF50",  # Green
     "Pituitary Tumor": "#FFEB3B",  # Yellow
+    "Non-Tumor": "#4CAF50",  # Green
+    "Non-Viable Tumor": "#FFEB3B",  # Yellow
+    "Viable Tumor": "#F44336",  # Red
 }
 
 # Sidebar for disease selection
