@@ -82,6 +82,20 @@ DISEASE_CONFIGS = {
         "SUBTITLE": "Upload or capture a pathology slide image from the sidebar to analyze potential conditions.",
         "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an pathologist for further evaluation.",
         "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed."
+    },
+    "Osteosarcoma": {
+        "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/20250121_osteo_sarcoma_b0_e30.pth",
+        "CATEGORIES": ["Non-Tumor", "Non-Viable Tumor", "Viable Tumor"],
+        "CONDITION_DESCRIPTIONS": {
+            "Non-Tumor": "The lesion appears non-cancerous and is unlikely to pose a threat to health, but may require routine monitoring.",
+            "Non-Viable Tumor": "The tumor appears non-viable, suggesting that it may not be actively growing or threatening health at this time.",
+            "Viable Tumor": "The tumor appears to be viable and could be cancerous, requiring immediate medical evaluation and further testing."
+        },
+        "UPLOAD_TITLE": "Upload Pathology Slide(s)",
+        "CAMERA_TITLE": "Capture Pathology Slide Image",
+        "SUBTITLE": "Upload or capture a pathology slide image from the sidebar to analyze potential conditions.",
+        "WARNING_MESSAGE": "The AI detected signs of a {prediction}. Please consult an oncologist or pathologist for further evaluation.",
+        "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed."
     }
 }
 
