@@ -101,7 +101,23 @@ DISEASE_CONFIGS = {
         "SUBTITLE": "Upload or capture a pathology slide image from the sidebar to analyze potential conditions.",
         "WARNING_MESSAGE": "The AI detected signs of a {prediction}. Please consult an oncologist or pathologist for further evaluation.",
         "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed.",
-        "SUCCESS_MESSAGE": "There appears to be no tumor present in the pathology slide presented."
+        "SUCCESS_MESSAGE": "There appears to be no tumor in the pathology slide presented."
+    },
+    "Acute Lymphoblastic Leukemia": {
+        "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/20250121_prepro_all_b0_e30.pth",
+        "CATEGORIES": ["Benign", "Early Pre-B", "Pre-B", "Pro-B"],
+        "CONDITION_DESCRIPTIONS": {
+            "Benign": "The blood smear appears non-cancerous and is unlikely to pose a threat to health, but may require routine monitoring.",
+            "Early Pre-B": "The blood smear shows early-stage Pre-B cells that are immature and non-viable, suggesting that the leukemia may be in an early phase and not actively progressing or threatening health at this time. Close monitoring is recommended.",
+            "Pre-B": "The blood smear reveals Pre-B cells that are viable and actively proliferating, suggesting a moderate risk of leukemia progression. Immediate medical evaluation and further diagnostic testing are necessary to assess the situation and determine an appropriate treatment plan.",
+            "Pro-B": "The blood smear shows Pro-B cells, which are mature and actively dividing, indicating a more advanced stage of Acute Lymphoblastic Leukemia. This stage requires urgent medical attention, further diagnostic evaluation, and immediate treatment to manage the condition."
+        },
+        "UPLOAD_TITLE": "Upload Peripheral Blood Smear(s)",
+        "CAMERA_TITLE": "Capture Peripheral Blood Smear Image",
+        "SUBTITLE": "Upload or capture a peripheral blood smear image from the sidebar to analyze potential conditions.",
+        "WARNING_MESSAGE": "The AI detected signs of {prediction} acute lymphoblastic leukemia. Please consult an oncologist for further evaluation.",
+        "INFO_MESSAGE": "Please upload or capture a peripheral blood smear image from the sidebar to proceed.",
+        "SUCCESS_MESSAGE": "There appears to be no cancerous indications in the blood smear presented."
     }
 }
 
@@ -116,6 +132,9 @@ COLORS = {
     "Non-Tumor": "#4CAF50",  # Green
     "Non-Viable Tumor": "#FFEB3B",  # Yellow
     "Viable Tumor": "#F44336",  # Red
+    "Early Pre-B": "#FFEB3B",  # Yellow
+    "Pre-B": "#FF5722",  # Orange
+    "Pro-B": "#F44336",  # Red
 }
 
 # Sidebar for disease selection
