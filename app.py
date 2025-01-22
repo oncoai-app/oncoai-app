@@ -237,7 +237,7 @@ with st.sidebar:
 
 # Main Content Area for Analysis and Diagnosis
 st.title("🩺 OncoAI")
-st.subheader("Detect Benign or Malignant Masses")
+st.subheader("Cancer Diagnosis Available for Everyone")
 
 # Dynamically set subtitle and info message based on selected disease
 st.markdown(f"<p>{config['SUBTITLE']}</p>", unsafe_allow_html=True)
