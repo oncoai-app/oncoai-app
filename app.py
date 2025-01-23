@@ -103,6 +103,20 @@ DISEASE_CONFIGS = {
         "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed.",
         "SUCCESS_MESSAGE": "There appears to be no tumor in the pathology slide presented."
     },
+    "Ocular Neoplasm": {
+        "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/st.pth",
+        "CATEGORIES": ["Neoplasm", "Normal"],
+        "CONDITION_DESCRIPTIONS": {
+            "Neoplasm": "The image suggests the presence of a tumor or growth in the eye. This could indicate a benign or malignant condition, requiring further evaluation by a medical professional.",
+            "Normal": "The image shows no signs of any ocular abnormalities. The eye appears healthy, with no indication of tumors or other concerning conditions."
+        },
+        "UPLOAD_TITLE": "Upload Fundus Photograph(s)",
+        "CAMERA_TITLE": "Capture Eye Image",
+        "SUBTITLE": "Upload or capture a fundus image from the sidebar to analyze potential conditions.",
+        "WARNING_MESSAGE": "The AI detected signs of a {prediction}. Please consult an ophthalmologist for further evaluation.",
+        "INFO_MESSAGE": "Please upload or capture a fundus image from the sidebar to proceed.",
+        "SUCCESS_MESSAGE": "There appears to be no ocular neoplasm in the image provided."
+    },
     "Acute Lymphoblastic Leukemia": {
         "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/20250121_prepro_all_b0_e30.pth",
         "CATEGORIES": ["Benign", "Early Pre-B", "Pre-B", "Pro-B"],
@@ -135,6 +149,7 @@ COLORS = {
     "Early Pre-B": "#FFEB3B",  # Yellow
     "Pre-B": "#FF5722",  # Orange
     "Pro-B": "#F44336",  # Red
+    "Neoplasm": "#FF5722",  # Orange
 }
 
 # Sidebar for disease selection
