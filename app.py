@@ -56,7 +56,7 @@ DISEASE_CONFIGS = {
         "UPLOAD_TITLE": "Upload Pathology Slide(s)",
         "CAMERA_TITLE": "Capture Pathology Slide Image",
         "SUBTITLE": "Upload or capture a pathology slide image from the sidebar to analyze potential conditions.",
-        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an pathologist for further evaluation.",
+        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult a pathologist for further evaluation.",
         "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed.",
         "SUCCESS_MESSAGE": "The image shows no signs of cancer. There is no immediate concern."
     },
@@ -84,7 +84,7 @@ DISEASE_CONFIGS = {
         "UPLOAD_TITLE": "Upload Pathology Slide(s)",
         "CAMERA_TITLE": "Capture Pathology Slide Image",
         "SUBTITLE": "Upload or capture a pathology slide image from the sidebar to analyze potential conditions.",
-        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an pathologist for further evaluation.",
+        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult a pathologist for further evaluation.",
         "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed.",
         "SUCCESS_MESSAGE": "The image shows no signs of cancer. There is no immediate concern."
     },
@@ -192,19 +192,23 @@ if "uploader_key" not in st.session_state:
 if 'current_view' not in st.session_state:
     st.session_state.current_view = None
 
-# Sidebar for Input Method Selection and Image Upload/Capture
+if "predictions" not in st.session_state:
+    st.session_state.predictions = []
+
+# Sidebar for image upload or camera
 with st.sidebar:
     st.header("Input Image")
-
+    
     # Display currently viewed image at the top of the sidebar
     if st.session_state.current_view:
         st.image(st.session_state.current_view[1], caption=st.session_state.current_view[0], use_column_width=True)
         st.markdown("---")
-
+        
     # Clear Data Button
     if st.button("Clear Data"):
         st.session_state.uploader_key += 1  # Increment key to reset file uploader
         st.session_state.current_view = None
+        st.session_state.predictions = []  # Clear predictions list
         st.experimental_rerun()  # Reload app to apply changes
 
     # Input Method Selection
@@ -262,6 +266,13 @@ if images:
                 prediction = CATEGORIES[prediction_idx]
                 confidence_score = probabilities[prediction_idx] * 100
 
+                # Store prediction details for overview
+                st.session_state.predictions.append({
+                    "image_name": image_name,
+                    "prediction": prediction,
+                    "confidence_score": confidence_score
+                })
+
                 # Display detailed results for a single image
                 st.markdown(f"<h3 style='color: {COLORS[prediction]}'>Predicted Class: {prediction}</h3>", unsafe_allow_html=True)
                 st.markdown(f"<p>{CONDITION_DESCRIPTIONS[prediction]}</p>", unsafe_allow_html=True)
@@ -301,6 +312,13 @@ if images:
                     prediction = CATEGORIES[prediction_idx]
                     confidence_score = probabilities[prediction_idx] * 100
 
+                    # Store prediction details for overview
+                    st.session_state.predictions.append({
+                        "image_name": image_name,
+                        "prediction": prediction,
+                        "confidence_score": confidence_score
+                    })
+
                     # Display results in columns
                     with col1:
                         st.markdown(
@@ -326,3 +344,22 @@ if images:
 else:
     # Display the info message dynamically
     st.info(config["INFO_MESSAGE"])
+
+# Display Overview in Sidebar after all images are processed
+if len(st.session_state.predictions) > 1:
+    with st.sidebar.expander("Overview", expanded=True):
+        st.markdown("### Overall Predictions Summary:")
+
+        # Initialize category confidence tracking
+        total_predictions = {category: 0 for category in CATEGORIES}
+        total_images = len(st.session_state.predictions)
+
+        for prediction_info in st.session_state.predictions:
+            prediction = prediction_info["prediction"]
+            confidence_score = prediction_info["confidence_score"]
+            total_predictions[prediction] += confidence_score
+
+        # Show the summary
+        for category, total_confidence in total_predictions.items():
+            avg_confidence = total_confidence / total_images
+            st.markdown(f"**{category}:** {avg_confidence:.2f}%")
