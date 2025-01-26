@@ -363,38 +363,3 @@ if len(st.session_state.predictions) > 1:
         for category, total_prob in category_totals.items():
             avg_probability = total_prob / total_images
             st.markdown(f"**{category}:** {avg_probability * 100:.2f}%")
-
-# Add the floating chat button
-st.markdown(
-    """
-    <style>
-        /* Style for the chat icon button */
-        .chat-icon {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #4CAF50; /* Green color for the icon */
-            color: white;
-            border-radius: 50%;
-            padding: 15px;
-            font-size: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            cursor: pointer;
-            z-index: 9999;
-            transition: background-color 0.3s;
-        }
-
-        /* Hover effect */
-        .chat-icon:hover {
-            background-color: #45a049;
-        }
-    </style>
-
-    <a href="https://oncoai.org/chat" target="_blank">
-        <div class="chat-icon">
-            💬
-        </div>
-    </a>
-    """, 
-    unsafe_allow_html=True
-)
