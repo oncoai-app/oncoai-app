@@ -349,9 +349,7 @@ else:
 
 # Display Overview in Sidebar after all images are processed
 if len(st.session_state.predictions) > 1:
-    with st.sidebar.expander("Overview", expanded=True):
-        st.markdown("### Overall Predictions Summary:")
-
+    with st.sidebar.expander("Overall Predictions Summary:", expanded=True):
         # Initialize category confidence tracking
         category_totals = {category: 0 for category in CATEGORIES}
         total_images = len(st.session_state.predictions)
