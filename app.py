@@ -349,6 +349,22 @@ else:
 
 # Display Overview in Sidebar after all images are processed
 if len(st.session_state.predictions) > 1:
+    with st.sidebar.expander("OVERALL PREDICTIONS SUMMARY", expanded=True):
+        # Initialize category confidence tracking
+        category_totals = {category: 0 for category in CATEGORIES}
+        total_images = len(st.session_state.predictions)
+
+        for prediction_info in st.session_state.predictions:
+            probabilities = prediction_info["probabilities"]
+            for category, prob in zip(CATEGORIES, probabilities):
+                category_totals[category] += prob
+
+        # Show the summary
+        for category, total_prob in category_totals.items():
+            avg_probability = total_prob / total_images
+            st.markdown(f"**{category}:** {avg_probability * 100:.2f}%")
+
+
     with st.sidebar.expander("Overall Predictions Summary", expanded=True):
         # Initialize category confidence tracking
         category_totals = {category: 0 for category in CATEGORIES}
