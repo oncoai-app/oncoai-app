@@ -56,7 +56,7 @@ DISEASE_CONFIGS = {
         "UPLOAD_TITLE": "Upload Pathology Slide(s)",
         "CAMERA_TITLE": "Capture Pathology Slide Image",
         "SUBTITLE": "Upload or capture a pathology slide image from the sidebar to analyze potential conditions.",
-        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult a pathologist for further evaluation.",
+        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an pathologist for further evaluation.",
         "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed.",
         "SUCCESS_MESSAGE": "The image shows no signs of cancer. There is no immediate concern."
     },
@@ -84,7 +84,7 @@ DISEASE_CONFIGS = {
         "UPLOAD_TITLE": "Upload Pathology Slide(s)",
         "CAMERA_TITLE": "Capture Pathology Slide Image",
         "SUBTITLE": "Upload or capture a pathology slide image from the sidebar to analyze potential conditions.",
-        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult a pathologist for further evaluation.",
+        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an pathologist for further evaluation.",
         "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed.",
         "SUCCESS_MESSAGE": "The image shows no signs of cancer. There is no immediate concern."
     },
@@ -270,7 +270,8 @@ if images:
                 st.session_state.predictions.append({
                     "image_name": image_name,
                     "prediction": prediction,
-                    "confidence_score": confidence_score
+                    "confidence_score": confidence_score,
+                    "probabilities": probabilities
                 })
 
                 # Display detailed results for a single image
@@ -316,7 +317,8 @@ if images:
                     st.session_state.predictions.append({
                         "image_name": image_name,
                         "prediction": prediction,
-                        "confidence_score": confidence_score
+                        "confidence_score": confidence_score,
+                        "probabilities": probabilities
                     })
 
                     # Display results in columns
@@ -351,15 +353,15 @@ if len(st.session_state.predictions) > 1:
         st.markdown("### Overall Predictions Summary:")
 
         # Initialize category confidence tracking
-        total_predictions = {category: 0 for category in CATEGORIES}
+        category_totals = {category: 0 for category in CATEGORIES}
         total_images = len(st.session_state.predictions)
 
         for prediction_info in st.session_state.predictions:
-            prediction = prediction_info["prediction"]
-            confidence_score = prediction_info["confidence_score"]
-            total_predictions[prediction] += confidence_score
+            probabilities = prediction_info["probabilities"]
+            for category, prob in zip(CATEGORIES, probabilities):
+                category_totals[category] += prob
 
         # Show the summary
-        for category, total_confidence in total_predictions.items():
-            avg_confidence = total_confidence / total_images
-            st.markdown(f"**{category}:** {avg_confidence:.2f}%")
+        for category, total_prob in category_totals.items():
+            avg_probability = total_prob / total_images
+            st.markdown(f"**{category}:** {avg_probability * 100:.2f}%")
