@@ -130,9 +130,6 @@ COLORS = {
     "Non-Tumor": "#4CAF50",  # Green
     "Non-Viable Tumor": "#FFEB3B",  # Yellow
     "Viable Tumor": "#F44336",  # Red
-    "Early Pre-B": "#FFEB3B",  # Yellow
-    "Pre-B": "#FF5722",  # Orange
-    "Pro-B": "#F44336",  # Red
     "Neoplasm": "#FF5722",  # Orange
 }
 
@@ -321,45 +318,61 @@ if images:
                         "probabilities": probabilities
                     })
 
-                    # Display results in columns
+                    # Display detailed results for each image
                     with col1:
-                        st.markdown(
-                            f"**{image_name}**: <span style='color:{COLORS[prediction]}'>{prediction}</span> ({confidence_score:.2f}%)",
-                            unsafe_allow_html=True,
-                        )
+                        st.image(img, caption=image_name, use_column_width=True)
+
                     with col2:
-                        if st.button("View", key=f"view_btn_{image_name}"):
-                            st.session_state.current_view = (image_name, img)
-                            st.experimental_rerun()
+                        st.markdown(f"<h3 style='color: {COLORS[prediction]}'>Prediction:</h3>", unsafe_allow_html=True)
+                        st.markdown(f"<h5>{prediction}</h5>", unsafe_allow_html=True)
+                        st.markdown(f"<strong>Confidence Score:</strong> {confidence_score:.2f}%", unsafe_allow_html=True)
+
                     with col3:
-                        if st.button("✕", key=f"close_btn_{image_name}"):
-                            if (
-                                st.session_state.current_view
-                                and st.session_state.current_view[0] == image_name
-                            ):
-                                st.session_state.current_view = None
-                                st.experimental_rerun()
+                        # Display category probabilities with progress bars
+                        st.markdown("<h3>Probabilities:</h3>", unsafe_allow_html=True)
+                        for category, prob in zip(CATEGORIES, probabilities):
+                            st.markdown(f"<strong>{category}:</strong> {prob * 100:.2f}%", unsafe_allow_html=True)
+                            progress_html = f"""
+                            <div style="background-color: #e0e0e0; border-radius: 25px; width: 100%; height: 18px; margin-bottom: 10px;">
+                                <div style="background-color: {COLORS[category]}; width: {prob * 100}%; height: 100%; border-radius: 25px;"></div>
+                            </div>
+                            """
+                            st.markdown(progress_html, unsafe_allow_html=True)
 
                 except Exception as e:
                     st.error(f"Error during prediction for {image_name}: {e}")
 
-else:
-    # Display the info message dynamically
-    st.info(config["INFO_MESSAGE"])
+# Add the floating chat button
+st.markdown(
+    """
+    <style>
+        /* Style for the chat icon button */
+        .chat-icon {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #4CAF50; /* Green color for the icon */
+            color: white;
+            border-radius: 50%;
+            padding: 15px;
+            font-size: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            z-index: 9999;
+            transition: background-color 0.3s;
+        }
 
-# Display Overview in Sidebar after all images are processed
-if len(st.session_state.predictions) > 1:
-    with st.sidebar.expander("Overall Predictions Summary", expanded=True):
-        # Initialize category confidence tracking
-        category_totals = {category: 0 for category in CATEGORIES}
-        total_images = len(st.session_state.predictions)
+        /* Hover effect */
+        .chat-icon:hover {
+            background-color: #45a049;
+        }
+    </style>
 
-        for prediction_info in st.session_state.predictions:
-            probabilities = prediction_info["probabilities"]
-            for category, prob in zip(CATEGORIES, probabilities):
-                category_totals[category] += prob
-
-        # Show the summary
-        for category, total_prob in category_totals.items():
-            avg_probability = total_prob / total_images
-            st.markdown(f"**{category}:** {avg_probability * 100:.2f}%")
+    <a href="https://oncoai.org/chat" target="_blank">
+        <div class="chat-icon">
+            💬
+        </div>
+    </a>
+    """, 
+    unsafe_allow_html=True
+)
