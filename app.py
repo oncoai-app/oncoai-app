@@ -138,6 +138,8 @@ COLORS = {
 
 # Sidebar for disease selection
 with st.sidebar:
+    st.write("Kavin Elangovan")
+    st.write("")
     st.header("Select Disease")
     
     selected_disease = st.selectbox("Choose a disease to analyze:", list(DISEASE_CONFIGS.keys()))
@@ -197,7 +199,6 @@ if "predictions" not in st.session_state:
 
 # Sidebar for image upload or camera
 with st.sidebar:
-    st.write("Kavin Elangovan")
     st.header("Input Image")
     
     # Display currently viewed image at the top of the sidebar
