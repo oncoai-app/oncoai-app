@@ -197,6 +197,7 @@ if "predictions" not in st.session_state:
 
 # Sidebar for image upload or camera
 with st.sidebar:
+    st.write("Kavin Elangovan")
     st.header("Input Image")
     
     # Display currently viewed image at the top of the sidebar
