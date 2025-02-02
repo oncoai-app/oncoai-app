@@ -138,7 +138,7 @@ COLORS = {
 
 # Sidebar for disease selection
 with st.sidebar:
-    st.write("Kavin Elangovan")
+    st.write("**Created By:** Kavin Elangovan")
     st.header("Select Disease")
     
     selected_disease = st.selectbox("Choose a disease to analyze:", list(DISEASE_CONFIGS.keys()))
