@@ -190,25 +190,16 @@ def predict(image_tensor, model):
 if "uploader_key" not in st.session_state:
     st.session_state.uploader_key = 0
 
-if 'current_view' not in st.session_state:
-    st.session_state.current_view = None
-
 if "predictions" not in st.session_state:
     st.session_state.predictions = []
 
 # Sidebar for image upload or camera
 with st.sidebar:
     st.header("Input Image")
-    
-    # Display currently viewed image at the top of the sidebar
-    if st.session_state.current_view:
-        st.image(st.session_state.current_view[1], caption=st.session_state.current_view[0], use_column_width=True)
-        st.markdown("---")
         
     # Clear Data Button
     if st.button("Clear Data"):
         st.session_state.uploader_key += 1  # Increment key to reset file uploader
-        st.session_state.current_view = None
         st.session_state.predictions = []  # Clear predictions list
         st.experimental_rerun()  # Reload app to apply changes
 
@@ -303,7 +294,6 @@ if images:
     # Multiple image uploads
     else:
         for image_name, img in images:
-            col1, col2, col3 = st.columns([8, 1, 1])
 
             # Show spinner while analyzing each image sequentially
             with st.spinner(f"Analyzing {image_name}..."):
@@ -322,24 +312,10 @@ if images:
                         "probabilities": probabilities
                     })
 
-                    # Display results in columns
-                    with col1:
-                        st.markdown(
-                            f"**{image_name}**: <span style='color:{COLORS[prediction]}'>{prediction}</span> ({confidence_score:.2f}%)",
-                            unsafe_allow_html=True,
-                        )
-                    with col2:
-                        if st.button("View", key=f"view_btn_{image_name}"):
-                            st.session_state.current_view = (image_name, img)
-                            st.experimental_rerun()
-                    with col3:
-                        if st.button("✕", key=f"close_btn_{image_name}"):
-                            if (
-                                st.session_state.current_view
-                                and st.session_state.current_view[0] == image_name
-                            ):
-                                st.session_state.current_view = None
-                                st.experimental_rerun()
+                    st.markdown(
+                        f"**{image_name}**: <span style='color:{COLORS[prediction]}'>{prediction}</span> ({confidence_score:.2f}%)",
+                        unsafe_allow_html=True,
+                    )
 
                 except Exception as e:
                     st.error(f"Error during prediction for {image_name}: {e}")
