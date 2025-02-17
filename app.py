@@ -88,6 +88,20 @@ DISEASE_CONFIGS = {
         "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed.",
         "SUCCESS_MESSAGE": "The image shows no signs of cancer. There is no immediate concern."
     },
+    "Gastrointestinal Cancer": {
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_gastro_hpe_ms.pth",
+        "CATEGORIES": ["Microsatellite Instability Mutated", "Microsatellite Stable"],
+        "CONDITION_DESCRIPTIONS": {
+            "Microsatellite Instability Mutated": "The image suggests the presence of microsatellite instability (MSI), which may indicate a higher likelihood of gastrointestinal cancer. Further evaluation by an oncologist is strongly recommended.",
+            "Microsatellite Stable": "The image shows microsatellite stability (MSS), which is less commonly associated with gastrointestinal cancer. However, continued monitoring or medical consultation may still be necessary depending on clinical context."
+        },
+        "UPLOAD_TITLE": "Upload Pathology Slide(s)",
+        "CAMERA_TITLE": "Capture Pathology Slide Image",
+        "SUBTITLE": "Upload or capture a pathology slide image from the sidebar to analyze potential conditions.",
+        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an oncologist, pathologist, and/or gastroenterologist for further evaluation.",
+        "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed.",
+        "SUCCESS_MESSAGE": "The image shows no signs of concerning mutations or instability in the slides provided. There is no current indication of gastrointestinal cancer."
+    },
     "Osteosarcoma": {
         "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_osteo_hpe_sarcoma.pth",
         "CATEGORIES": ["Non-Tumor", "Non-Viable Tumor", "Viable Tumor"],
@@ -127,6 +141,8 @@ COLORS = {
     "Meningioma": "#2196F3",  # Blue
     "Normal": "#4CAF50",  # Green
     "Pituitary Tumor": "#FFEB3B",  # Yellow
+    "Microsatellite Instability Mutated": "#F44336",  # Red
+    "Microsatellite Stable": "#4CAF50",  # Green
     "Non-Tumor": "#4CAF50",  # Green
     "Non-Viable Tumor": "#FFEB3B",  # Yellow
     "Viable Tumor": "#F44336",  # Red
