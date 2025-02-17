@@ -300,7 +300,7 @@ if images:
                     st.markdown(progress_html, unsafe_allow_html=True)
 
                 # Additional insights or warnings based on prediction
-                if prediction not in ["Normal", "Benign", "Non-Tumor"]:
+                if prediction not in ["Normal", "Benign", "Microsatellite Stable", "Non-Tumor"]:
                     st.warning(WARNING_MESSAGE.format(prediction=prediction))
                 else:
                     st.success(SUCCESS_MESSAGE)
@@ -310,85 +310,62 @@ if images:
 
     # Multiple image uploads
     else:
-        # Create two columns for displaying images and their details
-        col1, col2 = st.columns(2)
+        # Define columns for image display and buttons
+        num_columns = len(images)
+        columns = st.columns(num_columns)
+        
+        # Track which image's detailed view is open
+        if "open_details_for_image" not in st.session_state:
+            st.session_state.open_details_for_image = None  # None means no image is expanded
     
-        for idx, (image_name, img) in enumerate(images):
-            # Alternate between columns for display
-            if idx % 2 == 0:
-                with col1:
-                    expander = st.expander(f"File Name: {image_name} (Click ▼ for details)")
-                    with expander:
-                        # Display the image
-                        st.image(img, caption=f"Selected Image: {image_name}", use_column_width=True)
+        for i, (image_name, img) in enumerate(images):
+            with columns[i]:
+                # Display the image and the diagnosis button
+                st.image(img, caption=f"Image: {image_name}", use_column_width=True)
+                # Display a button with ▼ to toggle details
+                button_label = "▼"
+                if st.button(button_label, key=f"toggle_{i}"):
+                    # Toggle the view for this image
+                    if st.session_state.open_details_for_image == i:
+                        st.session_state.open_details_for_image = None  # Close if already open
+                    else:
+                        st.session_state.open_details_for_image = i  # Open this image's details
+                
+                # If this image is the one clicked to open, show detailed info
+                if st.session_state.open_details_for_image == i:
+                    # Analysis and Prediction Section (same as your single image display)
+                    with st.spinner(f"Analyzing {image_name}..."):
+                        try:
+                            input_tensor = preprocess_image(img)
+                            probabilities = predict(input_tensor, model)
+                            prediction_idx = np.argmax(probabilities)
+                            prediction = CATEGORIES[prediction_idx]
+                            confidence_score = probabilities[prediction_idx] * 100
     
-                        # Analyze and predict
-                        with st.spinner(f"Analyzing {image_name}..."):
-                            try:
-                                input_tensor = preprocess_image(img)
-                                probabilities = predict(input_tensor, model)
-                                prediction_idx = np.argmax(probabilities)
-                                prediction = CATEGORIES[prediction_idx]
-                                confidence_score = probabilities[prediction_idx] * 100
+                            # Show detailed results for this image
+                            st.markdown(f"<h3 style='color: {COLORS[prediction]}'>Predicted Class: {prediction}</h3>", unsafe_allow_html=True)
+                            st.markdown(f"<p>{CONDITION_DESCRIPTIONS[prediction]}</p>", unsafe_allow_html=True)
+                            st.markdown(f"<strong>Confidence Score:</strong> {confidence_score:.2f}%", unsafe_allow_html=True)
     
-                                # Display prediction results
-                                st.markdown(
-                                    f"<h3 style='color: {COLORS[prediction]}'>Predicted Class: {prediction}</h3>",
-                                    unsafe_allow_html=True,
-                                )
-                                st.markdown(f"<p>{CONDITION_DESCRIPTIONS[prediction]}</p>", unsafe_allow_html=True)
-                                st.markdown(f"<strong>Confidence Score:</strong> {confidence_score:.2f}%", unsafe_allow_html=True)
+                            # Display category probabilities with progress bars
+                            st.markdown("<h3>Category Probabilities:</h3>", unsafe_allow_html=True)
+                            for category, prob in zip(CATEGORIES, probabilities):
+                                st.markdown(f"<strong>{category}:</strong> {prob * 100:.2f}%", unsafe_allow_html=True)
+                                progress_html = f"""
+                                <div style="background-color: #e0e0e0; border-radius: 25px; width: 100%; height: 18px; margin-bottom: 10px;">
+                                    <div style="background-color: {COLORS[category]}; width: {prob * 100}%; height: 100%; border-radius: 25px;"></div>
+                                </div>
+                                """
+                                st.markdown(progress_html, unsafe_allow_html=True)
     
-                                # Display category probabilities with progress bars
-                                st.markdown("<h4>Category Probabilities:</h4>", unsafe_allow_html=True)
-                                for category, prob in zip(CATEGORIES, probabilities):
-                                    st.markdown(f"<strong>{category}:</strong> {prob * 100:.2f}%", unsafe_allow_html=True)
-                                    progress_html = f"""
-                                    <div style="background-color: #e0e0e0; border-radius: 25px; width: 100%; height: 18px; margin-bottom: 10px;">
-                                        <div style="background-color: {COLORS[category]}; width: {prob * 100}%; height: 100%; border-radius: 25px;"></div>
-                                    </div>
-                                    """
-                                    st.markdown(progress_html, unsafe_allow_html=True)
+                            # Additional insights or warnings based on prediction
+                            if prediction not in ["Normal", "Benign", "Microsatellite Stable", "Non-Tumor"]:
+                                st.warning(WARNING_MESSAGE.format(prediction=prediction))
+                            else:
+                                st.success(SUCCESS_MESSAGE)
     
-                            except Exception as e:
-                                st.error(f"Error during prediction for {image_name}: {e}")
-            else:
-                with col2:
-                    expander = st.expander(f"File Name: {image_name} (Click ▼ for details)")
-                    with expander:
-                        # Display the image
-                        st.image(img, caption=f"Selected Image: {image_name}", use_column_width=True)
-    
-                        # Analyze and predict
-                        with st.spinner(f"Analyzing {image_name}..."):
-                            try:
-                                input_tensor = preprocess_image(img)
-                                probabilities = predict(input_tensor, model)
-                                prediction_idx = np.argmax(probabilities)
-                                prediction = CATEGORIES[prediction_idx]
-                                confidence_score = probabilities[prediction_idx] * 100
-    
-                                # Display prediction results
-                                st.markdown(
-                                    f"<h3 style='color: {COLORS[prediction]}'>Predicted Class: {prediction}</h3>",
-                                    unsafe_allow_html=True,
-                                )
-                                st.markdown(f"<p>{CONDITION_DESCRIPTIONS[prediction]}</p>", unsafe_allow_html=True)
-                                st.markdown(f"<strong>Confidence Score:</strong> {confidence_score:.2f}%", unsafe_allow_html=True)
-    
-                                # Display category probabilities with progress bars
-                                st.markdown("<h4>Category Probabilities:</h4>", unsafe_allow_html=True)
-                                for category, prob in zip(CATEGORIES, probabilities):
-                                    st.markdown(f"<strong>{category}:</strong> {prob * 100:.2f}%", unsafe_allow_html=True)
-                                    progress_html = f"""
-                                    <div style="background-color: #e0e0e0; border-radius: 25px; width: 100%; height: 18px; margin-bottom: 10px;">
-                                        <div style="background-color: {COLORS[category]}; width: {prob * 100}%; height: 100%; border-radius: 25px;"></div>
-                                    </div>
-                                    """
-                                    st.markdown(progress_html, unsafe_allow_html=True)
-    
-                            except Exception as e:
-                                st.error(f"Error during prediction for {image_name}: {e}")
+                        except Exception as e:
+                            st.error(f"Error during prediction for {image_name}: {e}")
 
 else:
     # Display the info message dynamically
