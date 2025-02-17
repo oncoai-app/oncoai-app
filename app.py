@@ -300,7 +300,7 @@ if images:
                     st.markdown(progress_html, unsafe_allow_html=True)
 
                 # Additional insights or warnings based on prediction
-                if prediction not in ["Normal", "Benign", "Microsatellite Stable", "Non-Tumor"]:
+                if prediction not in ["Normal", "Benign", "Non-Tumor"]:
                     st.warning(WARNING_MESSAGE.format(prediction=prediction))
                 else:
                     st.success(SUCCESS_MESSAGE)
@@ -310,63 +310,32 @@ if images:
 
     # Multiple image uploads
     else:
-        # Iterate through each uploaded image
         for image_name, img in images:
-            # Create two columns: one for text and another for the down arrow (expandable section)
-            col1, col2 = st.columns([3, 1])
-    
-            # Display file name and confidence percentage in the first column
-            with col1:
-                st.markdown(
-                    f"**File Name:** {image_name} (<span style='color:{COLORS.get('Normal', '#000')}'>{'Analyzing...'}</span>)",
-                    unsafe_allow_html=True,
-                )
-    
-            # Add an expandable section in the second column
-            with col2:
-                expander = st.expander("▼")
-                with expander:
-                    # Display the image
-                    st.image(img, caption=f"Selected Image: {image_name}", use_column_width=True)
-    
-                    # Analyze and predict
-                    with st.spinner(f"Analyzing {image_name}..."):
-                        try:
-                            input_tensor = preprocess_image(img)
-                            probabilities = predict(input_tensor, model)
-                            prediction_idx = np.argmax(probabilities)
-                            prediction = CATEGORIES[prediction_idx]
-                            confidence_score = probabilities[prediction_idx] * 100
-    
-                            # Store prediction details for overview
-                            st.session_state.predictions.append({
-                                "image_name": image_name,
-                                "prediction": prediction,
-                                "confidence_score": confidence_score,
-                                "probabilities": probabilities
-                            })
-    
-                            # Display prediction results
-                            st.markdown(
-                                f"<h3 style='color: {COLORS[prediction]}'>Predicted Class: {prediction}</h3>",
-                                unsafe_allow_html=True,
-                            )
-                            st.markdown(f"<p>{CONDITION_DESCRIPTIONS[prediction]}</p>", unsafe_allow_html=True)
-                            st.markdown(f"<strong>Confidence Score:</strong> {confidence_score:.2f}%", unsafe_allow_html=True)
-    
-                            # Display category probabilities with progress bars
-                            st.markdown("<h4>Category Probabilities:</h4>", unsafe_allow_html=True)
-                            for category, prob in zip(CATEGORIES, probabilities):
-                                st.markdown(f"<strong>{category}:</strong> {prob * 100:.2f}%", unsafe_allow_html=True)
-                                progress_html = f"""
-                                <div style="background-color: #e0e0e0; border-radius: 25px; width: 100%; height: 18px; margin-bottom: 10px;">
-                                    <div style="background-color: {COLORS[category]}; width: {prob * 100}%; height: 100%; border-radius: 25px;"></div>
-                                </div>
-                                """
-                                st.markdown(progress_html, unsafe_allow_html=True)
-    
-                        except Exception as e:
-                            st.error(f"Error during prediction for {image_name}: {e}")
+
+            # Show spinner while analyzing each image sequentially
+            with st.spinner(f"Analyzing {image_name}..."):
+                try:
+                    input_tensor = preprocess_image(img)
+                    probabilities = predict(input_tensor, model)
+                    prediction_idx = np.argmax(probabilities)
+                    prediction = CATEGORIES[prediction_idx]
+                    confidence_score = probabilities[prediction_idx] * 100
+
+                    # Store prediction details for overview
+                    st.session_state.predictions.append({
+                        "image_name": image_name,
+                        "prediction": prediction,
+                        "confidence_score": confidence_score,
+                        "probabilities": probabilities
+                    })
+
+                    st.markdown(
+                        f"**{image_name}**: <span style='color:{COLORS[prediction]}'>{prediction}</span> ({confidence_score:.2f}%)",
+                        unsafe_allow_html=True,
+                    )
+
+                except Exception as e:
+                    st.error(f"Error during prediction for {image_name}: {e}")
 
 else:
     # Display the info message dynamically
