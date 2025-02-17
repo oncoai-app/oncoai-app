@@ -249,7 +249,11 @@ with st.sidebar:
 st.title("🩺 OncoAI")
 st.subheader("Cancer Diagnosis Available for Everyone")
 
-st.warning(f"**Note:** *OncoAI* is a screening application using artificial intelligence. There may be room for inaccuracy. Always consult a medical professional for official diagnosis.", unsafe_allow_html=True)
+# Displaying the warning message with HTML
+st.warning("""
+    <p><strong>Note:</strong> <em>OncoAI</em> is a screening application using artificial intelligence. There may be room for inaccuracy. 
+    Always consult a medical professional for official diagnosis.</p>
+""", unsafe_allow_html=True)
 
 # Dynamically set subtitle and info message based on selected disease
 st.markdown(f"<p>{config['SUBTITLE']}</p>", unsafe_allow_html=True)
