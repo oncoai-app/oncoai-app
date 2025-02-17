@@ -17,7 +17,7 @@ st.set_page_config(
 # Disease configurations
 DISEASE_CONFIGS = {
     "Brain Cancer": {
-        "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/20250119_brain_mri_e30.pth",
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_brain_mri_sartaj_br35h.pth",
         "CATEGORIES": ["Glioma", "Meningioma", "Normal", "Pituitary Tumor"],
         "CONDITION_DESCRIPTIONS": {
             "Glioma": "A malignant tumor that starts in the brain or spine, requiring urgent treatment and care.",
@@ -33,7 +33,7 @@ DISEASE_CONFIGS = {
         "SUCCESS_MESSAGE": "The MRI scan appears normal. No abnormalities detected."
     },
     "Skin Cancer": {
-        "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/ss_model.pth",
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_skin_photo_isic.pth",
         "CATEGORIES": ["Benign", "Malignant"],
         "CONDITION_DESCRIPTIONS": {
             "Benign": "The lesion appears non-cancerous and typically does not pose a threat to health.",
@@ -47,7 +47,7 @@ DISEASE_CONFIGS = {
         "SUCCESS_MESSAGE": "The skin lesion appears non-cancerous. No immediate concern."
     },
     "Breast Cancer": {
-        "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/20250120_breast_breakhis_b0_e30.pth",
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_breast_hpe_breakhis.pth",
         "CATEGORIES": ["Benign", "Malignant"],
         "CONDITION_DESCRIPTIONS": {
             "Benign": "The lesion appears non-cancerous and is unlikely to pose a threat to health, but may require routine monitoring.",
@@ -61,7 +61,7 @@ DISEASE_CONFIGS = {
         "SUCCESS_MESSAGE": "The image shows no signs of cancer. There is no immediate concern."
     },
     "Lung Cancer": {
-        "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/20250120_lung_iqoth_b0_e30.pth",
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_lung_ct_iqothnccd.pth",
         "CATEGORIES": ["Benign", "Malignant"],
         "CONDITION_DESCRIPTIONS": {
             "Benign": "The lesion appears non-cancerous and is unlikely to pose a threat to health, but may require routine monitoring.",
@@ -75,7 +75,7 @@ DISEASE_CONFIGS = {
         "SUCCESS_MESSAGE": "The image shows no signs of cancer. There is no immediate concern."
     },
     "Colon Cancer": {
-        "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/20250121_colon_lc25000_b0_e30.pth",
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_colon_hpe_lc25000.pth",
         "CATEGORIES": ["Benign", "Malignant"],
         "CONDITION_DESCRIPTIONS": {
             "Benign": "The lesion appears non-cancerous and is unlikely to pose a threat to health, but may require routine monitoring.",
@@ -89,7 +89,7 @@ DISEASE_CONFIGS = {
         "SUCCESS_MESSAGE": "The image shows no signs of cancer. There is no immediate concern."
     },
     "Osteosarcoma": {
-        "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/20250121_osteo_sarcoma_b0_e30.pth",
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_osteo_hpe_sarcoma.pth",
         "CATEGORIES": ["Non-Tumor", "Non-Viable Tumor", "Viable Tumor"],
         "CONDITION_DESCRIPTIONS": {
             "Non-Tumor": "The lesion appears non-cancerous and is unlikely to pose a threat to health, but may require routine monitoring.",
@@ -104,7 +104,7 @@ DISEASE_CONFIGS = {
         "SUCCESS_MESSAGE": "There appears to be no tumor in the pathology slide presented."
     },
     "Ocular Neoplasm": {
-        "MODEL_URL": "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/st.pth",
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_neoplasm_fundus_jsiec.pth",
         "CATEGORIES": ["Neoplasm", "Normal"],
         "CONDITION_DESCRIPTIONS": {
             "Neoplasm": "The image suggests the presence of a tumor or growth in the eye. This could indicate a benign or malignant condition, requiring further evaluation by a medical professional.",
