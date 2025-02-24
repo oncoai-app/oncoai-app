@@ -32,6 +32,20 @@ DISEASE_CONFIGS = {
         "INFO_MESSAGE": "Please upload or capture an MRI image from the sidebar to proceed.",
         "SUCCESS_MESSAGE": "The MRI scan appears normal. No abnormalities detected."
     },
+    "Pancreatic Cancer": {
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_pancreatic_ct_cancer.pth",
+        "CATEGORIES": ["Normal", "Malignant"],
+        "CONDITION_DESCRIPTIONS": {
+            "Normal": "The lesion appears non-cancerous and does not require immediate medical attention.",
+            "Malignant": "The lesion may be cancerous and requires immediate medical evaluation, further testing, and potentially urgent treatment to address the cancer and prevent its spread."
+        },
+        "UPLOAD_TITLE": "Upload CT Scan(s)",
+        "CAMERA_TITLE": "Capture CT Scan",
+        "SUBTITLE": "Upload or capture a CT scan from the sidebar to analyze potential conditions.",
+        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an oncologist for further evaluation.",
+        "INFO_MESSAGE": "Please upload or capture a CT scan from the sidebar to proceed.",
+        "SUCCESS_MESSAGE": "The image shows no signs of a pancreatic tumor. There is no immediate concern."
+    },
     "Skin Cancer": {
         "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_skin_photo_isic.pth",
         "CATEGORIES": ["Benign", "Malignant"],
@@ -130,17 +144,31 @@ DISEASE_CONFIGS = {
         "WARNING_MESSAGE": "The AI detected signs of a {prediction}. Please consult an ophthalmologist for further evaluation.",
         "INFO_MESSAGE": "Please upload or capture a fundus image from the sidebar to proceed.",
         "SUCCESS_MESSAGE": "There appears to be no ocular neoplasm in the image provided."
+    },
+    "Acute Lymphoblastic Leukemia": {
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_all_smear_leukemia.pth",
+        "CATEGORIES": ["Benign", "Early Pre-B", "Pre-B", "Pro-B"],
+        "CONDITION_DESCRIPTIONS": {
+            "Neoplasm": "The image suggests the presence of a tumor or growth in the eye. This could indicate a benign or malignant condition, requiring further evaluation by a medical professional.",
+            "Normal": "The image shows no signs of any ocular abnormalities. The eye appears healthy, with no indication of tumors or other concerning conditions."
+        },
+        "UPLOAD_TITLE": "Upload Fundus Photograph(s)",
+        "CAMERA_TITLE": "Capture Eye Image",
+        "SUBTITLE": "Upload or capture a fundus image from the sidebar to analyze potential conditions.",
+        "WARNING_MESSAGE": "The AI detected signs of a {prediction}. Please consult an ophthalmologist for further evaluation.",
+        "INFO_MESSAGE": "Please upload or capture a fundus image from the sidebar to proceed.",
+        "SUCCESS_MESSAGE": "There appears to be no ocular neoplasm in the image provided."
     }
 }
 
 # Define COLORS for predictions
 COLORS = {
-    "Benign": "#4CAF50",  # Green
-    "Malignant": "#F44336",  # Red
     "Glioma": "#FF5722",  # Orange
     "Meningioma": "#2196F3",  # Blue
     "Normal": "#4CAF50",  # Green
     "Pituitary Tumor": "#FFEB3B",  # Yellow
+    "Malignant": "#F44336",  # Red
+    "Benign": "#4CAF50",  # Green
     "Microsatellite Instability Mutated": "#F44336",  # Red
     "Microsatellite Stable": "#4CAF50",  # Green
     "Non-Tumor": "#4CAF50",  # Green
