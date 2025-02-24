@@ -46,34 +46,6 @@ DISEASE_CONFIGS = {
         "INFO_MESSAGE": "Please upload or capture a CT scan from the sidebar to proceed.",
         "SUCCESS_MESSAGE": "The image shows no signs of a pancreatic tumor. There is no immediate concern."
     },
-    "Skin Cancer": {
-        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_skin_photo_isic.pth",
-        "CATEGORIES": ["Benign", "Malignant"],
-        "CONDITION_DESCRIPTIONS": {
-            "Benign": "The lesion appears non-cancerous and typically does not pose a threat to health.",
-            "Malignant": "The lesion may be cancerous and requires immediate medical attention."
-        },
-        "UPLOAD_TITLE": "Upload Skin Lesion Image(s)",
-        "CAMERA_TITLE": "Capture Skin Lesion Image",
-        "SUBTITLE": "Upload or capture a skin lesion image from the sidebar to analyze potential conditions.",
-        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult a dermatologist for further evaluation.",
-        "INFO_MESSAGE": "Please upload or capture a skin lesion image from the sidebar to proceed.",
-        "SUCCESS_MESSAGE": "The skin lesion appears non-cancerous. No immediate concern."
-    },
-    "Breast Cancer": {
-        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_breast_hpe_breakhis.pth",
-        "CATEGORIES": ["Benign", "Malignant"],
-        "CONDITION_DESCRIPTIONS": {
-            "Benign": "The lesion appears non-cancerous and is unlikely to pose a threat to health, but may require routine monitoring.",
-            "Malignant": "The lesion may be cancerous and requires immediate medical evaluation and further testing."
-        },
-        "UPLOAD_TITLE": "Upload Pathology Slide(s)",
-        "CAMERA_TITLE": "Capture Pathology Slide Image",
-        "SUBTITLE": "Upload or capture a pathology slide image from the sidebar to analyze potential conditions.",
-        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an pathologist for further evaluation.",
-        "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed.",
-        "SUCCESS_MESSAGE": "The image shows no signs of cancer. There is no immediate concern."
-    },
     "Lung Cancer": {
         "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_lung_ct_iqothnccd.pth",
         "CATEGORIES": ["Benign", "Malignant"],
@@ -102,6 +74,36 @@ DISEASE_CONFIGS = {
         "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed.",
         "SUCCESS_MESSAGE": "The image shows no signs of cancer. There is no immediate concern."
     },
+    "Acute Lymphoblastic Leukemia": {
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_all_smear_leukemia.pth",
+        "CATEGORIES": ["Benign", "Early Pre-B", "Pre-B", "Pro-B"],
+        "CONDITION_DESCRIPTIONS": {
+            "Benign": "The blood smear appears non-cancerous and is unlikely to pose a threat to health, but may require routine monitoring.",
+            "Early Pre-B": "The blood smear shows early-stage Pre-B cells that are immature and non-viable, suggesting that the leukemia may be in an early phase and not actively progressing or threatening health at this time. Close monitoring is recommended.",
+            "Pre-B": "The blood smear reveals Pre-B cells that are viable and actively proliferating, suggesting a moderate risk of leukemia progression. Immediate medical evaluation and further diagnostic testing are necessary to assess the situation and determine an appropriate treatment plan.",
+            "Pro-B": "The blood smear shows Pro-B cells, which are mature and actively dividing, indicating a more advanced stage of ALL. This stage requires urgent medical attention, further diagnostic evaluation, and immediate treatment to manage the condition."
+        },
+        "UPLOAD_TITLE": "Upload Peripheral Blood Smear(s)",
+        "CAMERA_TITLE": "Capture Peripheral Blood Smear Image",
+        "SUBTITLE": "Upload or capture a peripheral blood smear image from the sidebar to analyze potential conditions.",
+        "WARNING_MESSAGE": "The AI detected signs of {prediction} acute lymphoblastic leukemia. Please consult an oncologist for further evaluation.",
+        "INFO_MESSAGE": "Please upload or capture a peripheral blood smear image from the sidebar to proceed.",
+        "SUCCESS_MESSAGE": "There appears to be no cancerous indications in the blood smear presented."
+    },
+    "Breast Cancer": {
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_breast_hpe_breakhis.pth",
+        "CATEGORIES": ["Benign", "Malignant"],
+        "CONDITION_DESCRIPTIONS": {
+            "Benign": "The lesion appears non-cancerous and is unlikely to pose a threat to health, but may require routine monitoring.",
+            "Malignant": "The lesion may be cancerous and requires immediate medical evaluation and further testing."
+        },
+        "UPLOAD_TITLE": "Upload Pathology Slide(s)",
+        "CAMERA_TITLE": "Capture Pathology Slide Image",
+        "SUBTITLE": "Upload or capture a pathology slide image from the sidebar to analyze potential conditions.",
+        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an pathologist for further evaluation.",
+        "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed.",
+        "SUCCESS_MESSAGE": "The image shows no signs of cancer. There is no immediate concern."
+    },
     "Gastrointestinal Cancer": {
         "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_gastro_hpe_ms.pth",
         "CATEGORIES": ["Microsatellite Instability Mutated", "Microsatellite Stable"],
@@ -115,6 +117,20 @@ DISEASE_CONFIGS = {
         "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an oncologist, pathologist, and/or gastroenterologist for further evaluation.",
         "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed.",
         "SUCCESS_MESSAGE": "The image shows no signs of concerning mutations or instability in the slides provided. There is no current indication of gastrointestinal cancer."
+    },
+    "Skin Cancer": {
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_skin_photo_isic.pth",
+        "CATEGORIES": ["Benign", "Malignant"],
+        "CONDITION_DESCRIPTIONS": {
+            "Benign": "The lesion appears non-cancerous and typically does not pose a threat to health.",
+            "Malignant": "The lesion may be cancerous and requires immediate medical attention."
+        },
+        "UPLOAD_TITLE": "Upload Skin Lesion Image(s)",
+        "CAMERA_TITLE": "Capture Skin Lesion Image",
+        "SUBTITLE": "Upload or capture a skin lesion image from the sidebar to analyze potential conditions.",
+        "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult a dermatologist for further evaluation.",
+        "INFO_MESSAGE": "Please upload or capture a skin lesion image from the sidebar to proceed.",
+        "SUCCESS_MESSAGE": "The skin lesion appears non-cancerous. No immediate concern."
     },
     "Osteosarcoma": {
         "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_osteo_hpe_sarcoma.pth",
@@ -144,20 +160,6 @@ DISEASE_CONFIGS = {
         "WARNING_MESSAGE": "The AI detected signs of a {prediction}. Please consult an ophthalmologist for further evaluation.",
         "INFO_MESSAGE": "Please upload or capture a fundus image from the sidebar to proceed.",
         "SUCCESS_MESSAGE": "There appears to be no ocular neoplasm in the image provided."
-    },
-    "Acute Lymphoblastic Leukemia": {
-        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_all_smear_leukemia.pth",
-        "CATEGORIES": ["Benign", "Early Pre-B", "Pre-B", "Pro-B"],
-        "CONDITION_DESCRIPTIONS": {
-            "Neoplasm": "The image suggests the presence of a tumor or growth in the eye. This could indicate a benign or malignant condition, requiring further evaluation by a medical professional.",
-            "Normal": "The image shows no signs of any ocular abnormalities. The eye appears healthy, with no indication of tumors or other concerning conditions."
-        },
-        "UPLOAD_TITLE": "Upload Fundus Photograph(s)",
-        "CAMERA_TITLE": "Capture Eye Image",
-        "SUBTITLE": "Upload or capture a fundus image from the sidebar to analyze potential conditions.",
-        "WARNING_MESSAGE": "The AI detected signs of a {prediction}. Please consult an ophthalmologist for further evaluation.",
-        "INFO_MESSAGE": "Please upload or capture a fundus image from the sidebar to proceed.",
-        "SUCCESS_MESSAGE": "There appears to be no ocular neoplasm in the image provided."
     }
 }
 
@@ -169,15 +171,15 @@ COLORS = {
     "Pituitary Tumor": "#FFEB3B",  # Yellow
     "Malignant": "#F44336",  # Red
     "Benign": "#4CAF50",  # Green
+    "Early Pre-B": "#FFEB3B",  # Yellow
+    "Pre-B": "#FF5722",  # Orange
+    "Pro-B": "#F44336"  # Red
     "Microsatellite Instability Mutated": "#F44336",  # Red
     "Microsatellite Stable": "#4CAF50",  # Green
     "Non-Tumor": "#4CAF50",  # Green
     "Non-Viable Tumor": "#FFEB3B",  # Yellow
     "Viable Tumor": "#F44336",  # Red
     "Neoplasm": "#FF5722",  # Orange
-    "Early Pre-B": "#FFEB3B",  # Yellow
-    "Pre-B": "#FF5722",  # Orange
-    "Pro-B": "#F44336"  # Red
 }
 
 # Sidebar for disease selection
