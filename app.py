@@ -173,7 +173,7 @@ COLORS = {
     "Benign": "#4CAF50",  # Green
     "Early Pre-B": "#FFEB3B",  # Yellow
     "Pre-B": "#FF5722",  # Orange
-    "Pro-B": "#F44336"  # Red
+    "Pro-B": "#F44336",  # Red
     "Microsatellite Instability Mutated": "#F44336",  # Red
     "Microsatellite Stable": "#4CAF50",  # Green
     "Non-Tumor": "#4CAF50",  # Green
