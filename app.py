@@ -102,6 +102,23 @@ DISEASE_CONFIGS = {
         "INFO_MESSAGE": "Please upload or capture a pathology slide image from the sidebar to proceed.",
         "SUCCESS_MESSAGE": "The image shows no signs of concerning mutations or instability in the slides provided. There is no current indication of gastrointestinal cancer."
     },
+    "Cervical Cancer": {
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_cervical_smear_sipakmed.pth",
+        "CATEGORIES": ["Dyskeratotic", "Koilocytotic", "Metaplastic", "Parabasal", "Superficial Intermediate"],
+        "CONDITION_DESCRIPTIONS": {
+            "Dyskeratotic": "The cervical smear shows dyskeratotic cells, which may indicate abnormal or premature keratinization. While this may be non-cancerous, further evaluation is recommended to rule out infection or other abnormalities.",
+            "Koilocytotic": "The cervical smear shows koilocytes, which are cells with characteristic vacuolization and irregular borders, often associated with human papillomavirus (HPV) infection. Close monitoring is necessary as HPV can increase the risk of cervical dysplasia.",
+            "Metaplastic": "The cervical smear shows metaplastic cells, indicating a change in the type of epithelial cells in the cervix. This can be a normal response to irritation or inflammation but may also indicate an underlying condition that requires follow-up.",
+            "Parabasal": "The cervical smear shows parabasal cells, which are immature cells that may indicate inflammation or hormonal changes. These cells can be a sign of cervical irritation, infection, or other conditions that require clinical attention.",
+            "Superficial Intermediate": "The cervical smear shows superficial and intermediate cells, which are considered normal and are the predominant cell types in a healthy cervix. These cells are generally not associated with any disease, but regular monitoring through screening is advised."
+        },
+        "UPLOAD_TITLE": "Upload Cervical Smear(s)",
+        "CAMERA_TITLE": "Capture Cervical Smear Image",
+        "SUBTITLE": "Upload or capture a cervical smear image from the sidebar to analyze potential conditions.",
+        "WARNING_MESSAGE": "The AI detected signs of {prediction} cells in the cervical smear. Please consult a healthcare provider for further evaluation.",
+        "INFO_MESSAGE": "Please upload or capture a cervical smear image from the sidebar to proceed.",
+        "SUCCESS_MESSAGE": "There appears to be no abnormal cell indications in the smear presented."
+    },
     "Skin Cancer": {
         "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_skin_photo_isic.pth",
         "CATEGORIES": ["Benign", "Malignant"],
