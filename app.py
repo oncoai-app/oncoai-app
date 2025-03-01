@@ -258,7 +258,7 @@ with st.sidebar:
     if input_method == "Upload Image":
         uploaded_files = st.file_uploader(
             config["UPLOAD_TITLE"],
-            type=["jpg", "png", "jpeg", "dcm", "nii", "gz"],  # Add MRI file types if necessary
+            type=["jpg", "png", "jpeg", "dcm", "nii", "gz", "bmp"],  # Add MRI file types if necessary
             accept_multiple_files=True,
             key=f"uploader_{st.session_state.uploader_key}"
         )
