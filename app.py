@@ -404,4 +404,4 @@ with st.sidebar.expander("Overall Predictions Summary", expanded=True):
             avg_probability = total_prob / total_images if total_images else 0 
             st.markdown(f"**{category}:** {avg_probability * 100:.2f}% ({category_counts[category]} / {total_images})") 
     else: 
-        st.info("No predictions yet.")
+        st.write("No predictions yet.")
