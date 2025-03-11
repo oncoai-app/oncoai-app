@@ -42,7 +42,7 @@ DISEASE_CONFIGS = {
         },
         "UPLOAD_TITLE": "Upload CT Scan(s)",
         "CAMERA_TITLE": "Capture CT Scan",
-        "SUBTITLE": "Upload or capture a CT scan from the sidebar to analyze potential conditions_resnet.",
+        "SUBTITLE": "Upload or capture a CT scan from the sidebar to analyze potential conditions.",
         "WARNING_MESSAGE": "The AI detected signs of {prediction} growth. Please consult an oncologist for further evaluation.",
         "INFO_MESSAGE": "Please upload or capture a CT scan from the sidebar to proceed.",
         "SUCCESS_MESSAGE": "The image shows no signs of a pancreatic tumor. There is no immediate concern."
