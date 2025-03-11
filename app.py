@@ -1,6 +1,5 @@
 import streamlit as st
 import torch
-from torch import nn
 from torchvision import transforms, models
 from PIL import Image
 import requests
@@ -18,7 +17,7 @@ st.set_page_config(
 # Disease configurations
 DISEASE_CONFIGS = {
     "Brain Cancer": {
-        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_brain_mri_sartaj_br35h_resnet.pth",
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_brain_mri_sartaj_br35h.pth",
         "CATEGORIES": ["Glioma", "Meningioma", "Normal", "Pituitary Tumor"],
         "CONDITION_DESCRIPTIONS": {
             "Glioma": "A malignant tumor that starts in the brain or spine, requiring urgent treatment and care.",
@@ -34,7 +33,7 @@ DISEASE_CONFIGS = {
         "SUCCESS_MESSAGE": "The MRI scan appears normal. No abnormalities detected."
     },
     "Pancreatic Cancer": {
-        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_pancreatic_ct_cancer_resnet.pth",
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_pancreatic_ct_cancer.pth",
         "CATEGORIES": ["Normal", "Malignant"],
         "CONDITION_DESCRIPTIONS": {
             "Normal": "The lesion appears non-cancerous and does not require immediate medical attention.",
@@ -48,7 +47,7 @@ DISEASE_CONFIGS = {
         "SUCCESS_MESSAGE": "The image shows no signs of a pancreatic tumor. There is no immediate concern."
     },
     "Lung Cancer": {
-        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_lung_ct_iqothnccd_resnet.pth",
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_lung_ct_iqothnccd.pth",
         "CATEGORIES": ["Benign", "Malignant"],
         "CONDITION_DESCRIPTIONS": {
             "Benign": "The lesion appears non-cancerous and is unlikely to pose a threat to health, but may require routine monitoring.",
@@ -62,7 +61,7 @@ DISEASE_CONFIGS = {
         "SUCCESS_MESSAGE": "The image shows no signs of cancer. There is no immediate concern."
     },
     "Colon Cancer": {
-        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_colon_hpe_lc25000_resnet.pth",
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_colon_hpe_lc25000.pth",
         "CATEGORIES": ["Benign", "Malignant"],
         "CONDITION_DESCRIPTIONS": {
             "Benign": "The lesion appears non-cancerous and is unlikely to pose a threat to health, but may require routine monitoring.",
@@ -76,7 +75,7 @@ DISEASE_CONFIGS = {
         "SUCCESS_MESSAGE": "The image shows no signs of cancer. There is no immediate concern."
     },
     "Breast Cancer": {
-        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_breast_hpe_breakhis_resnet.pth",
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_breast_hpe_breakhis.pth",
         "CATEGORIES": ["Benign", "Malignant"],
         "CONDITION_DESCRIPTIONS": {
             "Benign": "The lesion appears non-cancerous and is unlikely to pose a threat to health, but may require routine monitoring.",
@@ -90,7 +89,7 @@ DISEASE_CONFIGS = {
         "SUCCESS_MESSAGE": "The image shows no signs of cancer. There is no immediate concern."
     },
     "Gastrointestinal Cancer": {
-        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_gastro_hpe_ms_resnet.pth",
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_gastro_hpe_ms.pth",
         "CATEGORIES": ["Microsatellite Instability Mutated", "Microsatellite Stable"],
         "CONDITION_DESCRIPTIONS": {
             "Microsatellite Instability Mutated": "The image suggests the presence of microsatellite instability (MSI), which may indicate a higher likelihood of gastrointestinal cancer. Further evaluation by an oncologist is strongly recommended.",
@@ -104,7 +103,7 @@ DISEASE_CONFIGS = {
         "SUCCESS_MESSAGE": "The image shows no signs of concerning mutations or instability in the slides provided. There is no current indication of gastrointestinal cancer."
     },
     "Cervical Cancer": {
-        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_cervical_smear_sipakmed_resnet.pth",
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_cervical_smear_sipakmed.pth",
         "CATEGORIES": ["Dyskeratotic", "Koilocytotic", "Metaplastic", "Parabasal", "Superficial Intermediate"],
         "CONDITION_DESCRIPTIONS": {
             "Dyskeratotic": "The cervical smear shows dyskeratotic cells, which may indicate abnormal or premature keratinization. While this may be non-cancerous, further evaluation is recommended to rule out infection or other abnormalities.",
@@ -121,7 +120,7 @@ DISEASE_CONFIGS = {
         "SUCCESS_MESSAGE": "There appears to be no abnormal cell indications in the smear presented."
     },
     "Skin Cancer": {
-        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_skin_photo_isic_resnet.pth",
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_skin_photo_isic.pth",
         "CATEGORIES": ["Benign", "Malignant"],
         "CONDITION_DESCRIPTIONS": {
             "Benign": "The lesion appears non-cancerous and typically does not pose a threat to health.",
@@ -135,7 +134,7 @@ DISEASE_CONFIGS = {
         "SUCCESS_MESSAGE": "The skin lesion appears non-cancerous. No immediate concern."
     },
     "Osteosarcoma": {
-        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_osteo_hpe_sarcoma_resnet.pth",
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_osteo_hpe_sarcoma.pth",
         "CATEGORIES": ["Non-Tumor", "Non-Viable Tumor", "Viable Tumor"],
         "CONDITION_DESCRIPTIONS": {
             "Non-Tumor": "The lesion appears non-cancerous and is unlikely to pose a threat to health, but may require routine monitoring.",
@@ -150,7 +149,7 @@ DISEASE_CONFIGS = {
         "SUCCESS_MESSAGE": "There appears to be no tumor in the pathology slide presented."
     },
     "Ocular Neoplasm": {
-        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_neoplasm_fundus_jsiec_resnet.pth",
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_neoplasm_fundus_jsiec.pth",
         "CATEGORIES": ["Neoplasm", "Normal"],
         "CONDITION_DESCRIPTIONS": {
             "Neoplasm": "The image suggests the presence of a tumor or growth in the eye. This could indicate a benign or malignant condition, requiring further evaluation by a medical professional.",
@@ -211,32 +210,19 @@ def preprocess_image(image):
     ])
     return transform(image).unsqueeze(0)
 
-# Load ResNet18 model with caching
+# Load model with caching
 @st.cache_resource(show_spinner=False)
 def load_model(model_url):
     try:
-        # Fetch the model from the URL
         response = requests.get(model_url)
         response.raise_for_status()
-        
-        # Load the pre-trained ResNet-18 model
-        model = models.resnet18(pretrained=True)
-        
-        # Replace the final fully connected layer to match the number of categories
-        num_features = model.fc.in_features
-        model.fc = nn.Linear(num_features, len(CATEGORIES))  # Adjust to your number of categories
-        
-        # Load the state dict from the URL
+        model = models.efficientnet_b0(pretrained=True)
+        num_features = model.classifier[1].in_features
+        model.classifier[1] = torch.nn.Linear(num_features, len(CATEGORIES))
         state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
-        
-        # Load model weights
         model.load_state_dict(state_dict, strict=True)
-        
-        # Set the model to evaluation mode
         model.eval()
-        
         return model
-    
     except Exception as e:
         st.error(f"Error loading the model: {e}")
         raise e
@@ -244,12 +230,8 @@ def load_model(model_url):
 # Prediction function
 @torch.no_grad()
 def predict(image_tensor, model):
-    # Run the model on the input image
     outputs = model(image_tensor)
-    
-    # Convert outputs to probabilities using softmax
     probabilities = torch.nn.functional.softmax(outputs, dim=1).squeeze().tolist()
-    
     return probabilities
 
 # Initialize session state for file uploader key and current view
