@@ -6,6 +6,7 @@ from PIL import Image
 import requests
 import io
 import numpy as np
+import time
 
 # Page Configuration
 st.set_page_config(
