@@ -296,6 +296,8 @@ with st.spinner("Loading AI Model..."):
 st.success("Model loaded successfully!")
 
 if images:
+    start_time = time.time() #Start timer here, before any image processing 
+    
     # Single image upload
     if len(images) == 1:
         image_name, img = images[0]
@@ -372,33 +374,34 @@ if images:
                 except Exception as e:
                     st.error(f"Error during prediction for {image_name}: {e}")
 
+    end_time = time.time() #End timer here, after all image processing 
+    prediction_time = round(end_time - start_time, 2) 
+
 else:
     # Display the info message dynamically
     st.info(config["INFO_MESSAGE"])
 
-# Display Overview in Sidebar after all images are processed 
-if len(st.session_state.predictions) > 1: 
-    with st.sidebar.expander("Overall Predictions Summary", expanded=True): 
-        # Initialize category confidence tracking and start timer 
-        start_time = time.time()  # Start timer when expander is opened (after all images processed) 
+# Display Overview in Sidebar (always show, even for one image) 
+with st.sidebar.expander("Overall Predictions Summary", expanded=True): 
+    if len(st.session_state.predictions) > 0: 
+        # Initialize category confidence tracking 
         category_totals = {category: 0 for category in CATEGORIES} 
-        category_counts = {category: 0 for category in CATEGORIES}  # Track image counts per category 
+        category_counts = {category: 0 for category in CATEGORIES} 
         total_images = len(st.session_state.predictions) 
 
         for prediction_info in st.session_state.predictions: 
             prediction = prediction_info["prediction"] 
-            category_counts[prediction] += 1  # Increment count for predicted category 
+            category_counts[prediction] += 1 
 
-        end_time = time.time()  # End timer after processing all predictions 
-        prediction_time = round(end_time - start_time, 2)  # Calculate prediction time 
+        # Display total images and prediction time (timer is handled elsewhere now) 
+        st.markdown(f"**Total # of Images:** {total_images} image{'s' if total_images > 1 else ''}") 
+        st.markdown(f"**Time for Predictions:** {prediction_time} sec") # prediction_time is defined elsewhere 
 
-        # Display total images and prediction time 
-        st.markdown(f"**Total # of Images:** {total_images} images") 
-        st.markdown(f"**Time for Predictions:** {prediction_time} sec") 
-
-        st.markdown("### Classifications")  # Add a heading 
+        st.markdown("### Classifications") 
 
         for category in CATEGORIES: 
             total_prob = sum(p["probabilities"][CATEGORIES.index(category)] for p in st.session_state.predictions if p["prediction"] == category) 
             avg_probability = total_prob / total_images if total_images else 0 
             st.markdown(f"**{category}:** {avg_probability * 100:.2f}% ({category_counts[category]} / {total_images})") 
+    else: 
+        st.info("No predictions yet.")
