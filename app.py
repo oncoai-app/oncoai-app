@@ -287,6 +287,7 @@ st.title("🩺 OncoAI")
 st.subheader("Cancer Diagnosis Available for Everyone")
 
 st.markdown(f"**Note:** *OncoAI* is a screening application using artificial intelligence. There may be room for inaccuracy. Always consult a medical professional for official diagnosis.", unsafe_allow_html=True)
+st.markdown(f"**Note:** *Onco-AIDE* is a custom artificial intelligence chatbot to provide cancer information and statistics. Explore by clicking the button in the **sidebar**.", unsafe_allow_html=True)
 
 # Dynamically set subtitle and info message based on selected disease
 st.markdown(f"<p>{config['SUBTITLE']}</p>", unsafe_allow_html=True)
