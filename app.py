@@ -251,7 +251,7 @@ with st.sidebar:
     if st.button("Clear Data"):
         st.session_state.uploader_key += 1  # Increment key to reset file uploader
         st.session_state.predictions = []  # Clear predictions list
-        st.experimental_rerun()  # Reload app to apply changes
+        st.rerun()  # Reload app to apply changes
 
     # Input Method Selection
     input_method = st.radio("Choose Input Method", ("Upload Image", "Capture from Camera"))
