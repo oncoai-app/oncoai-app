@@ -188,6 +188,7 @@ COLORS = {
 
 # Sidebar for disease selection
 with st.sidebar:
+    st.divider()
     st.write("**Created By:** Kavin Elangovan")
     st.write("**Model:** EfficientNetB0")
     
