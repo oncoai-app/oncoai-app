@@ -18,7 +18,7 @@ st.set_page_config(
 # Disease configurations
 DISEASE_CONFIGS = {
     "Brain Cancer": {
-        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_brain_mri_sartaj_br35h_custom.pth",
+        "MODEL_URL": "https://huggingface.co/OncoAI/oncobank/resolve/main/oncoai_brain_mri_sartaj_br35h.pth",
         "CATEGORIES": ["Glioma", "Meningioma", "Normal", "Pituitary Tumor"],
         "CONDITION_DESCRIPTIONS": {
             "Glioma": "A malignant tumor that starts in the brain or spine, requiring urgent treatment and care.",
