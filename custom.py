@@ -201,6 +201,37 @@ CONDITION_DESCRIPTIONS = config["CONDITION_DESCRIPTIONS"]
 SUCCESS_MESSAGE = config["SUCCESS_MESSAGE"]
 WARNING_MESSAGE = config["WARNING_MESSAGE"]
 
+# Custom model definition
+class CustomEfficientNet(nn.Module):
+    def __init__(self, num_classes=4):
+        super(CustomEfficientNet, self).__init__()
+        
+        self.base_model = models.efficientnet_b0(pretrained=True)
+        
+        for param in self.base_model.parameters():
+            param.requires_grad = False
+        
+        self.additional_conv = nn.Sequential(
+            nn.Conv2d(1280, 256, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(256),
+            nn.MaxPool2d(kernel_size=2)
+        )
+        
+        self.classification_head = nn.Sequential(
+            nn.Linear(256 * 3 * 3, 512),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(512, num_classes)
+        )
+        
+    def forward(self, x):
+        x = self.base_model.features(x)
+        x = self.additional_conv(x)
+        x = x.view(-1, 256 * 3 * 3)
+        x = self.classification_head(x)
+        return x
+
 # Preprocess image with caching
 @st.cache_data(show_spinner=False)
 def preprocess_image(image):
@@ -218,11 +249,9 @@ def load_model(model_url):
     try:
         response = requests.get(model_url)
         response.raise_for_status()
-        model = models.efficientnet_b0(pretrained=True)
-        num_features = model.classifier[1].in_features
-        model.classifier[1] = torch.nn.Linear(num_features, len(CATEGORIES))
+        model = CustomEfficientNet(len(CATEGORIES))  # Initialize custom model with correct number of classes
         state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
-        model.load_state_dict(state_dict, strict=True)
+        model.load_state_dict(state_dict, strict=True)  # Load state dictionary into custom model
         model.eval()
         return model
     except Exception as e:
