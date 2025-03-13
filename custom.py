@@ -189,6 +189,8 @@ COLORS = {
 
 # Sidebar for disease selection
 with st.sidebar:
+    st.link_button("Explore **Onco-AIDE**", "https://oncoai.org/aide")
+    st.divider()
     st.write("**Created By:** Kavin Elangovan")
     st.write("**Model:** Custom EfficientNet")
     
