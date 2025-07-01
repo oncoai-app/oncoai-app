@@ -397,7 +397,8 @@ with st.sidebar.expander("Overall Predictions Summary", expanded=True):
 
         # Display total images and prediction time (timer is handled elsewhere now) 
         st.markdown(f"**Total # of Images:** {total_images} image{'s' if total_images > 1 else ''}") 
-        st.markdown(f"**Time for Predictions:** {prediction_time} sec") # prediction_time is defined elsewhere 
+        st.markdown(f"**Time for Predictions:** {prediction_time} sec") # prediction_time is defined elsewhere
+        st.markdown(f"**Prediction Time per Image:** {prediction_time / total_images:.2f} sec")  # ✅ New line
 
         st.markdown("### Classifications") 
 
