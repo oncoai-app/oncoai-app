@@ -406,6 +406,11 @@ with st.sidebar.expander("Overall Predictions Summary", expanded=True):
         
         for category in CATEGORIES:
             count = category_counts[category]
+            total_prob = sum(
+                p["probabilities"][CATEGORIES.index(category)]
+                for p in st.session_state.predictions
+                if p["prediction"] == category
+            )
             avg_confidence = total_prob / count if count else 0
             color = COLORS.get(category, "#FFFFFF")  # Fallback to black if not found
         
