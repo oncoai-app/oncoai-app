@@ -402,35 +402,17 @@ with st.sidebar.expander("Overall Predictions Summary", expanded=True):
 
         st.markdown("### Classifications")
 
-        # --- Accuracy Section ---
-        st.markdown("#### Accuracy Score")
+        st.markdown("#### Confidence Scores")
+        
         for category in CATEGORIES:
             count = category_counts[category]
             accuracy_percent = (count / total_images) * 100 if total_images else 0
             color = COLORS.get(category, "#FFFFFF")  # Fallback to black if not found
         
             st.markdown(
-                f"<span style='color:{color}; font-weight:bold'>{category}:</span> {count} / {total_images} ({accuracy_percent:.2f}%)",
+                f"<span style='color:{color}; font-weight:bold'>{category}:</span> ({avg_confidence * 100:.2f}%) {count} / {total_images}",
                 unsafe_allow_html=True
             )
-        
-        # --- Confidence Section ---
-        st.markdown("#### Confidence Score")
-        for category in CATEGORIES:
-            count = category_counts[category]
-            total_prob = sum(
-                p["probabilities"][CATEGORIES.index(category)]
-                for p in st.session_state.predictions
-                if p["prediction"] == category
-            )
-            avg_confidence = total_prob / count if count else 0
-            color = COLORS.get(category, "#FFFFFF")  # Fallback to black if not found
-        
-            st.markdown(
-                f"<span style='color:{color}; font-weight:bold'>{category}:</span> {avg_confidence * 100:.2f}%",
-                unsafe_allow_html=True
-            )
-
 
     else: 
         st.write("No predictions yet.")
