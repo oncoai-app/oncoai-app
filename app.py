@@ -402,14 +402,25 @@ with st.sidebar.expander("Overall Predictions Summary", expanded=True):
 
         st.markdown("### Classifications") 
 
+        # --- Accuracy Section ---
+        st.markdown("#### Accuracy Scores")
         for category in CATEGORIES:
             count = category_counts[category]
-            total_prob = sum(p["probabilities"][CATEGORIES.index(category)] for p in st.session_state.predictions if p["prediction"] == category)
-            avg_probability = total_prob / count if count else 0
-            percentage = (count / total_images) * 100 if total_images else 0
+            accuracy_percent = (count / total_images) * 100 if total_images else 0
+            st.markdown(f"**{category}:** {count} / {total_images} ({accuracy_percent:.2f}%)")
         
-            st.markdown(f"**{category}:** {count} / {total_images} ({percentage:.2f}%)")
-            st.markdown(f"- Confidence Score: **{avg_probability * 100:.2f}%**")
+        # --- Confidence Section ---
+        st.markdown("#### Confidence Scores")
+        for category in CATEGORIES:
+            count = category_counts[category]
+            total_prob = sum(
+                p["probabilities"][CATEGORIES.index(category)]
+                for p in st.session_state.predictions
+                if p["prediction"] == category
+            )
+            avg_confidence = total_prob / count if count else 0
+            st.markdown(f"**{category}:** {avg_confidence * 100:.2f}%")
+
 
     else: 
         st.write("No predictions yet.")
