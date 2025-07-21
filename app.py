@@ -401,8 +401,6 @@ with st.sidebar.expander("Overall Predictions Summary", expanded=True):
         st.markdown(f"**Prediction Time per Image:** {prediction_time / total_images:.3f} sec")  # ✅ New line
 
         st.markdown("### Classifications")
-
-        st.markdown("#### Confidence Scores")
         
         for category in CATEGORIES:
             count = category_counts[category]
@@ -415,7 +413,7 @@ with st.sidebar.expander("Overall Predictions Summary", expanded=True):
             color = COLORS.get(category, "#FFFFFF")  # Fallback to black if not found
         
             st.markdown(
-                f"<span style='color:{color}; font-weight:bold'>{category}:</span> ({avg_confidence * 100:.2f}%) {count} / {total_images}",
+                f"<span style='color:{color}; font-weight:bold'>{category}:</span> {count} / {total_images} ({avg_confidence * 100:.2f}% Confidence)",
                 unsafe_allow_html=True
             )
 
