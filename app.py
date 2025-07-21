@@ -400,17 +400,22 @@ with st.sidebar.expander("Overall Predictions Summary", expanded=True):
         st.markdown(f"**Time for Predictions:** {prediction_time} sec") # prediction_time is defined elsewhere
         st.markdown(f"**Prediction Time per Image:** {prediction_time / total_images:.3f} sec")  # ✅ New line
 
-        st.markdown("### Classifications") 
+        st.markdown("### Classifications")
 
         # --- Accuracy Section ---
-        st.markdown("#### Accuracy Scores")
+        st.markdown("#### Accuracy Score")
         for category in CATEGORIES:
             count = category_counts[category]
             accuracy_percent = (count / total_images) * 100 if total_images else 0
-            st.markdown(f"**{category}:** {count} / {total_images} ({accuracy_percent:.2f}%)")
+            color = COLORS.get(category, "#FFFFFF")  # Fallback to black if not found
+        
+            st.markdown(
+                f"<span style='color:{color}; font-weight:bold'>{category}:</span> {count} / {total_images} ({accuracy_percent:.2f}%)",
+                unsafe_allow_html=True
+            )
         
         # --- Confidence Section ---
-        st.markdown("#### Confidence Scores")
+        st.markdown("#### Confidence Score")
         for category in CATEGORIES:
             count = category_counts[category]
             total_prob = sum(
@@ -419,7 +424,12 @@ with st.sidebar.expander("Overall Predictions Summary", expanded=True):
                 if p["prediction"] == category
             )
             avg_confidence = total_prob / count if count else 0
-            st.markdown(f"**{category}:** {avg_confidence * 100:.2f}%")
+            color = COLORS.get(category, "#FFFFFF")  # Fallback to black if not found
+        
+            st.markdown(
+                f"<span style='color:{color}; font-weight:bold'>{category}:</span> {avg_confidence * 100:.2f}%",
+                unsafe_allow_html=True
+            )
 
 
     else: 
