@@ -402,9 +402,14 @@ with st.sidebar.expander("Overall Predictions Summary", expanded=True):
 
         st.markdown("### Classifications") 
 
-        for category in CATEGORIES: 
-            total_prob = sum(p["probabilities"][CATEGORIES.index(category)] for p in st.session_state.predictions if p["prediction"] == category) 
-            avg_probability = total_prob / total_images if total_images else 0 
-            st.markdown(f"**{category}:** {avg_probability * 100:.2f}% ({category_counts[category]} / {total_images})") 
+        for category in CATEGORIES:
+            count = category_counts[category]
+            total_prob = sum(p["probabilities"][CATEGORIES.index(category)] for p in st.session_state.predictions if p["prediction"] == category)
+            avg_probability = total_prob / count if count else 0
+            percentage = (count / total_images) * 100 if total_images else 0
+        
+            st.markdown(f"**{category}:** {count} / {total_images} ({percentage:.2f}%)")
+            st.markdown(f"- Confidence Score: **{avg_probability * 100:.2f}%**")
+
     else: 
         st.write("No predictions yet.")
