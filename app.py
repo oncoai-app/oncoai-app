@@ -406,7 +406,7 @@ with st.sidebar.expander("Overall Predictions Summary", expanded=True):
         
         for category in CATEGORIES:
             count = category_counts[category]
-            accuracy_percent = (count / total_images) * 100 if total_images else 0
+            avg_confidence = total_prob / count if count else 0
             color = COLORS.get(category, "#FFFFFF")  # Fallback to black if not found
         
             st.markdown(
